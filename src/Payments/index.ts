@@ -3,13 +3,13 @@ import {
     formatDBParamsToStr,
 } from '../../utils';
 import _ from "lodash";
-import { User } from "./types";
+import { Payment } from "./types";
 
-const table = 'users';
+const table = 'stream_payments';
 
 // create
 export const create = async(insertParams: any): Promise<void> => {
-    const fillableColumns = [ 'name', 'wallet', 'signature', 'profile_picture' ];
+    const fillableColumns = [ 'from_user', 'from_wallet', 'from_chain', 'from_token_symbol', 'from_token_address', 'from_amount', 'to_user', 'to_wallet', 'to_chain', 'to_token_symbol', 'to_token_address', 'to_amount', 'tx_hash', 'usd_worth' ];
     const params = formatDBParamsToStr(_.pick(insertParams, fillableColumns), ', ', true);
 
     // put quote
@@ -22,8 +22,8 @@ export const create = async(insertParams: any): Promise<void> => {
 }
 
 // view (single - user_id)
-export const view = async(id: number): Promise<User> => {
-    const query = `SELECT * FROM ${table} WHERE id = ${id} LIMIT 1`;
+export const view = async(userId: number): Promise<Payment> => {
+    const query = `SELECT * FROM ${table} WHERE id = ${userId} LIMIT 1`;
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
@@ -32,44 +32,44 @@ export const view = async(id: number): Promise<User> => {
 }
 
 // find (single - field)
-export const find = async(whereParams: {[key: string]: any}): Promise<User[]> => {
+export const find = async(whereParams: {[key: string]: any}): Promise<Payment[]> => {
     const params = formatDBParamsToStr(whereParams, ' AND ');
-    const query = `SELECT * FROM ${table} WHERE status = 'active' AND ${params}`;
+    const query = `SELECT * FROM ${table} WHERE ${params}`;
 
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as User[];
+    return result as Payment[];
 }
 
 // list (all)
-export const list = async(): Promise<User[]> => {
-    const query = `SELECT * FROM ${table} WHERE status = 'active'`;
+export const list = async(): Promise<Payment[]> => {
+    const query = `SELECT * FROM ${table}`;
 
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as User[];
+    return result as Payment[];
 }
 
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     // filter
-    const fillableColumns = ['name', 'signature', 'profile_picture'];
+    const fillableColumns = ['status'];
     const params = formatDBParamsToStr(_.pick(_.pick(updateParams, fillableColumns), fillableColumns), ', ');
 
-    const query = `UPDATE ${table} SET ${params} WHERE id = ${id} AND status = 'active'`;
+    const query = `UPDATE ${table} SET ${params} WHERE id = ${id}`;
 
     const db = new DB();
-    const result = await db.executeQueryForSingleResult(query);
+    await db.executeQueryForSingleResult(query);
 }
 
 // delete (soft delete?)
 // export const delete = async(userId: number) => {
-//     const query = `DELETE FROM users WHERE user_id = ${userId}`;
+//     const query = `DELETE FROM ${table} WHERE user_id = ${userId}`;
 
 //     const db = new DB();
-//     const result = await db.executeQueryForSingleResult(query);
+//     await db.executeQueryForSingleResult(query);
 
 //     return result;
 // }

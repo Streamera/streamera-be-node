@@ -162,11 +162,14 @@ export default [
 
             CREATE TABLE stream_payments (
                 id bigserial PRIMARY KEY,
-                user_id int not null,
+                from_user int not null,
+                from_wallet text not null,
                 from_chain int not null,
                 from_token_symbol text not null,
                 from_token_address text not null,
                 from_amount numeric(72,18) not null,
+                to_user int not null,
+                to_wallet text not null,
                 to_chain int not null,
                 to_token_symbol text not null,
                 to_token_address text not null,
@@ -187,12 +190,16 @@ export default [
         query: `
             CREATE TRIGGER update_stream_payments_updated_at BEFORE UPDATE ON stream_payments FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_payments_status_idx ON stream_payments (status);
-            CREATE INDEX stream_payments_user_id_idx ON stream_payments (user_id);
+            CREATE INDEX stream_payments_from_user_idx ON stream_payments (from_user);
+            CREATE INDEX stream_payments_to_user_idx ON stream_payments (to_user);
+            CREATE UNIQUE INDEX CONCURRENTLY stream_payments_tx_hash_idx ON equipment (tx_hash);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_payments_updated_at;
             DROP INDEX stream_payments_status_idx;
-            DROP INDEX stream_payments_user_id_idx;
+            DROP INDEX stream_payments_from_user_idx;
+            DROP INDEX stream_payments_to_user_idx;
+            DROP INDEX stream_payments_tx_hash_idx;
             `
         },
     {

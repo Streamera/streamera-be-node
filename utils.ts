@@ -1,8 +1,10 @@
 import dotenv from 'dotenv';
 import moment from 'moment';
 import path from 'path';
-dotenv.config({ path: path.join(__dirname, '.env')});
-import axios, { AxiosRequestHeaders, AxiosRequestConfig, AxiosResponse } from "axios";
+dotenv.config({
+    path: path.join(__dirname, '.env')
+});
+import axios, {AxiosRequestHeaders, AxiosRequestConfig, AxiosResponse} from "axios";
 import crypto from "crypto";
 import DB from './src/DB';
 import _ from 'lodash';
@@ -21,10 +23,10 @@ export function sleep(ms: number) {
  * @param minDecimal number
  * @param maxDecimal number
  */
- export function toLocaleDecimal(x: number, minDecimal: number, maxDecimal: number) {
+export function toLocaleDecimal(x: number, minDecimal: number, maxDecimal: number) {
     return x.toLocaleString('en', {
         minimumFractionDigits: minDecimal,
-        maximumFractionDigits: maxDecimal,
+        maximumFractionDigits: maxDecimal
     });
 }
 
@@ -33,8 +35,8 @@ export function sleep(ms: number) {
  * @param fn
  * @param args
  */
-export const runIfFunction = (fn: any, ...args: any): any | undefined => {
-    if(typeof(fn) == 'function'){
+export const runIfFunction = (fn : any, ...args : any) : any | undefined => {
+    if (typeof(fn) == 'function') {
         return fn(...args);
     }
 
@@ -48,13 +50,13 @@ export const runIfFunction = (fn: any, ...args: any): any | undefined => {
  * @param rightCharLength number
  */
 export function ellipsizeThis(x: string, leftCharLength: number, rightCharLength: number) {
-    if(!x) {
+    if (! x) {
         return x;
     }
 
     let totalLength = leftCharLength + rightCharLength;
 
-    if(totalLength >= x.length) {
+    if (totalLength >= x.length) {
         return x;
     }
 
@@ -65,8 +67,10 @@ export function ellipsizeThis(x: string, leftCharLength: number, rightCharLength
  * Returns the new object that has no reference to the old object to avoid mutations.
  * @param obj
  */
-export const cloneObj = <T = any>(obj: {[key: string]: any}) => {
-    return JSON.parse(JSON.stringify(obj)) as T;
+export const cloneObj = <T = any>(obj : {
+    [key : string]: any
+}) => {
+    return JSON.parse(JSON.stringify(obj))as T;
 }
 
 /**
@@ -75,20 +79,17 @@ export const cloneObj = <T = any>(obj: {[key: string]: any}) => {
 export const getRandomColor = () => {
     var letters = '0123456789ABCDEF'.split('');
     var color = '#';
-    for (var i = 0; i < 6; i++ ) {
+    for (var i = 0; i < 6; i++) {
         color += letters[Math.floor(Math.random() * 16)];
     }
     return color;
 }
 
-export const getRandomNumber = (min: number, max: number, isInteger = false) => {
+export const getRandomNumber = (min : number, max : number, isInteger = false) => {
     let rand = min + (Math.random() * (max - min));
-    if(isInteger) {
+    if (isInteger) {
         rand = Math.round(rand);
-    }
-
-    else {
-        // to 3 decimals
+    } else { // to 3 decimals
         rand = Math.floor(rand * 1000) / 1000;
     }
 
@@ -99,7 +100,7 @@ export const getRandomChance = () => {
     return getRandomNumber(0, 100);
 }
 
-export const getRandomNumberAsString = (min: number, max: number, isInteger = false) => {
+export const getRandomNumberAsString = (min : number, max : number, isInteger = false) => {
     return getRandomNumber(min, max, isInteger).toString();
 }
 
@@ -131,56 +132,50 @@ export const getDbConfig = () => {
         password: DB_PASSWORD,
         host: DB_HOST,
         port: parseInt(DB_PORT),
-        database: DB_NAME,
+        database: DB_NAME
     };
 }
 
-export const getInsertQuery = (columns: string[], values: any[][], table: string, returnId: boolean = false, schema: string = "public") => {
+export const getInsertQuery = (columns : string[], values : any[][], table : string, returnId : boolean = false, schema : string = "public") => {
     let columnString = columns.join(",");
     let valueString = "";
 
-    for(let value of values) {
-        valueString +=  "(";
-        for(let content of value) {
-            if(typeof content === "string") {
+    for (let value of values) {
+        valueString += "(";
+        for (let content of value) {
+            if (typeof content === "string") {
                 valueString += `'${content}'`;
 
-            }
-
-            else {
+            } else {
                 valueString += `${content}`;
-            }
-
-            valueString += ",";
+            } valueString += ",";
         }
-        //remove last comma
+        // remove last comma
         valueString = valueString.substring(0, valueString.length - 1);
         valueString += "),";
     }
 
-    //remove last comma
+    // remove last comma
     valueString = valueString.substring(0, valueString.length - 1);
 
     let query = `INSERT INTO ${schema}.${table} (${columnString}) VALUES ${valueString}`;
-    if(returnId) {
+    if (returnId) {
         query += ' RETURNING id';
     }
     query += ';';
     return query;
 }
 
-export const getHash = (string: string): string => {
+export const getHash = (string : string) : string => {
     const hash = crypto.createHash('md5').update(string).digest("hex")
     return hash;
 }
 
-export const axiosCall = async(headers: AxiosRequestHeaders, config: AxiosRequestConfig) => {
+export const axiosCall = async (headers : AxiosRequestHeaders, config : AxiosRequestConfig) => {
     return new Promise((resolve, reject) => {
-        axios(config)
-        .then((res) => {
+        axios(config).then((res) => {
             resolve(res.data);
-        }).catch((err) => {
-            // console.log(err);
+        }).catch((err) => { // console.log(err);
             resolve(null);
         });
     });
@@ -193,7 +188,7 @@ export const axiosCall = async(headers: AxiosRequestHeaders, config: AxiosReques
  * @param { number } max
  * @returns { number }
  */
-export const getRandomIntInclusive = (min: number, max: number): number => {
+export const getRandomIntInclusive = (min : number, max : number) : number => {
     const randomBuffer = new Uint32Array(1);
     crypto.webcrypto.getRandomValues(randomBuffer);
 
@@ -204,7 +199,7 @@ export const getRandomIntInclusive = (min: number, max: number): number => {
     return Math.floor(randomNumber * (max - min + 1)) + min;
 }
 
-export const generateRandomNumberChar = (min: number, max: number): string => {
+export const generateRandomNumberChar = (min : number, max : number) : string => {
     const charLength = getRandomIntInclusive(min, max)
     let numStr = '';
 
@@ -215,18 +210,20 @@ export const generateRandomNumberChar = (min: number, max: number): string => {
 }
 
 // check if the uuid is valid as sanitization
-export const isValidUUID = (uuid: string) => {
-    return (uuid.match(/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i)?.length ?? 0) > 0;
+export const isValidUUID = (uuid : string) => {
+    return(uuid.match(/^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i) ?. length ?? 0) > 0;
 }
 
-export const isCurrentUserAdmin = async(discord_id: string) => {
+export const isCurrentUserAdmin = async (discord_id : string) => {
     let db = new DB();
     let query = `select count(*) as admin_count from admins where discord_id = '${discord_id}'`;
     let result = await db.executeQueryForSingleResult<{ admin_count: number }>(query);
     return result !== undefined && result.admin_count > 0;
 }
 
-export const formatDBParamsToStr = (params: {[key: string]: any}, separator: string = ', ', valueOnly: boolean = false) => {
+export const formatDBParamsToStr = (params : {
+    [key : string]: any
+}, separator : string = ', ', valueOnly : boolean = false) => {
     let stringParams: string[] = [];
     _.map(params, (p, k) => {
         const value = typeof p === 'string' ? `'${p}'` : p;
@@ -241,6 +238,21 @@ export const formatDBParamsToStr = (params: {[key: string]: any}, separator: str
     return _.join(stringParams, separator);
 }
 
-export const getAssetUrl = (url: string) => {
-    return `${process.env.DOMAIN}/${url}`;
+export const getAssetUrl = (url : string) => {
+    return `${
+        process.env.DOMAIN
+    }/${url}`;
+}
+
+export const convertBigIntToString = (obj : any) => {
+    if (typeof obj === 'object') {
+        for (let key in obj) {
+            if (typeof obj[key] === 'bigint') {
+                obj[key] = obj[key].toString();
+            } else if (typeof obj[key] === 'object') {
+                obj[key] = convertBigIntToString(obj[key]);
+            }
+        }
+    }
+    return obj;
 }

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as UserController from '../Users/index';
+import * as controller from '../Users/index';
 import multer from 'multer';
 import path from 'path';
 import appRoot from 'app-root-path';
@@ -7,7 +7,7 @@ import { v4 as uuidv4 } from 'uuid';
 import _ from 'lodash';
 import fs from 'fs-extra';
 
-export const userRoutes = Router();
+export const routes = Router();
 
 const contentPath = 'public/content';
 const contentStorage = multer.diskStorage({
@@ -24,34 +24,32 @@ const contentStorage = multer.diskStorage({
 const contentUpload = multer({ storage: contentStorage });
 
 // list
-userRoutes.get('/', async (req, res) => {
-    return res.json(await UserController.list());
+routes.get('/', async (req, res) => {
+    return res.json(await controller.list());
 });
 
 // get
-userRoutes.get('/:user_id', async (req, res) => {
-    return res.json(await UserController.view(parseInt(req.params.user_id)));
+routes.get('/:id', async (req, res) => {
+    return res.json(await controller.view(parseInt(req.params.id)));
 });
 
 // find
-userRoutes.post('/find', async (req, res) => {
-    console.log(req);
-    return res.json(await UserController.find(req.body));
+routes.post('/find', async (req, res) => {
+    return res.json(await controller.find(req.body));
 });
 
 // create
-userRoutes.post('/', contentUpload.single('profile_picture'), async(req, res) => {
+routes.post('/', contentUpload.single('profile_picture'), async(req, res) => {
     let data = req.body;
-    const result = await UserController.create(data);
+    await controller.create(data);
 
-    return res.json(result);
+    return res.json({ success: true });
 });
 
 // update
 // have to use POST to update (because multer does not support PUT)
-userRoutes.post('/update', contentUpload.single('profile_picture'), async(req, res) => {
+routes.post('/update/:id', contentUpload.single('profile_picture'), async(req, res) => {
     let data = req.body;
-    console.log(req);
 
     const whitelistMimes = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp', 'video/mp4', 'video/mpeg', 'video/quicktime'];
 
@@ -66,7 +64,8 @@ userRoutes.post('/update', contentUpload.single('profile_picture'), async(req, r
     if (_.has(req, 'file')) {
         data.profile_picture = req.file?.filename;
     }
-    const result = await UserController.update(data);
 
-    return res.json(result);
+    await controller.update(parseInt(req.params.id), data);
+
+    return res.json({ success: true });
 });
