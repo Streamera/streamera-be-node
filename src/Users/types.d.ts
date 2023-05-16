@@ -8,7 +8,7 @@ export type User = {
     profile_picture: string;
     status?: UserStatus;
     created_at?: string;
-    updated_at?: string;
+    updated_at?: string | null;
     to_chain?: number;
     to_token_symbol?: string;
     to_token_address?: string;

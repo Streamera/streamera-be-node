@@ -4,6 +4,7 @@ import {  } from './src/Seeders';
 dotenv.config({ path: path.join(__dirname, '.env')});
 import * as User from './src/Users';
 import * as Payment from './src/Payments';
+import * as Stream from './src/Streams';
 
 (async() => {
     await User.create({
@@ -20,7 +21,7 @@ import * as Payment from './src/Payments';
         "to_chain":"97",
         "to_token_symbol":"wbnb",
         "to_token_address":"0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"
-    })
+    });
 
     await User.create({
         "name":"Second 2",
@@ -43,7 +44,17 @@ import * as Payment from './src/Payments';
         "to_amount": "1729",
         "tx_hash": "0x2ebf065cf375d3c729524d733d33ba8535150ac38e97701b9742b7b1f8c72256",
         "usd_worth": "0.2985"
-    })
+    });
+
+    await Stream.create({
+        "user_id": 1,
+        "title": "First Live",
+        "description": "Starting tonight",
+        "thumbnail": "",
+        "start_at": null,
+        "end_at": null,
+        "status": "scheduled"
+    });
 
     console.log('Seed ended, press CTRL / CMD + C');
     return;

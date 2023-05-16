@@ -18,5 +18,5 @@ export type Payment = {
     usd_worth: string;
     status: PaymentStatus;
     created_at?: string;
-    updated_at?: string;
+    updated_at?: string | null;
 }

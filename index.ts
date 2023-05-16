@@ -7,6 +7,7 @@ import path from 'path';
 import dotenv from 'dotenv';
 import { routes as userRoutes } from './src/Routes/users';
 import { routes as paymentRoutes } from './src/Routes/payments';
+import { routes as streamRoutes } from './src/Routes/streams';
 dotenv.config({ path: path.join(__dirname, '.env')});
 
 process.on('uncaughtException', function (err) {
@@ -29,6 +30,7 @@ app.use(cors({
 // include all the routes
 app.use('/user', userRoutes);
 app.use('/payment', paymentRoutes);
+app.use('/stream', streamRoutes);
 
 //connect app to websocket
 let http = createServer(app);
