@@ -11,6 +11,26 @@ export default [
         rollback_query: `DROP TABLE migrations;`
     },
     {
+        // https://stackoverflow.com/questions/9556474/how-do-i-automatically-update-a-timestamp-in-postgresql
+        name: "create_updated_at_function",
+        query: `
+                CREATE OR REPLACE FUNCTION update_at_column()
+                RETURNS TRIGGER AS $$
+                BEGIN
+                IF row(NEW.*) IS DISTINCT FROM row(OLD.*) THEN
+                    NEW.updated_at = now();
+                    RETURN NEW;
+                ELSE
+                    RETURN OLD;
+                END IF;
+                END;
+                $$ language 'plpgsql';
+            `,
+        rollback_query: `
+            DROP FUNCTION update_at_column;
+        `
+    },
+    {
         name: "create_users_table",
         query: `
             CREATE TYPE user_status AS ENUM ('active', 'inactive');
@@ -33,10 +53,12 @@ export default [
     {
         name: "create_users_table_idx",
         query: `
-            CREATE INDEX user_wallet_idx ON users (wallet);
+            CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users FOR EACH ROW EXECUTE PROCEDURE update_at_column();
+            CREATE INDEX users_wallet_idx ON users (wallet);
             `,
         rollback_query: `
-            DROP INDEX user_wallet_idx;
+            DROP TRIGGER update_users_updated_at;
+            DROP INDEX users_wallet_idx;
         `
     },
     {
@@ -58,11 +80,13 @@ export default [
     {
         name: "create_user_donation_setting_idx",
         query: `
+            CREATE TRIGGER update_user_donation_setting_updated_at BEFORE UPDATE ON user_donation_setting FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX user_donation_setting_user_id_idx ON user_donation_setting (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_user_donation_setting_updated_at;
             DROP INDEX user_donation_setting_user_id_idx;
-        `
+            `
     },
     {
         name: "create_user_social_media_table",
@@ -86,10 +110,13 @@ export default [
     {
         name: "create_user_social_media_idx",
         query: `
+            CREATE TRIGGER update_user_social_media_updated_at BEFORE UPDATE ON user_social_media FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX user_social_media_user_id_idx ON user_social_media (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_user_social_media_updated_at;
             DROP INDEX user_social_media_user_id_idx;
+
         `
     },
     {
@@ -118,14 +145,16 @@ export default [
     {
         name: "create_streams_table_idx",
         query: `
+            CREATE TRIGGER update_streams_updated_at BEFORE UPDATE ON streams FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX streams_user_id_status_idx ON streams (status);
             CREATE INDEX streams_user_id_idx ON streams (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_streams_updated_at;
             DROP INDEX streams_user_id_status_idx;
             DROP INDEX streams_user_id_idx;
-        `
-    },
+            `
+        },
     {
         name: "create_stream_payments_table",
         query: `
@@ -156,14 +185,16 @@ export default [
     {
         name: "create_stream_payments_idx",
         query: `
+            CREATE TRIGGER update_stream_payments_updated_at BEFORE UPDATE ON stream_payments FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_payments_status_idx ON stream_payments (status);
             CREATE INDEX stream_payments_user_id_idx ON stream_payments (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_payments_updated_at;
             DROP INDEX stream_payments_status_idx;
             DROP INDEX stream_payments_user_id_idx;
-        `
-    },
+            `
+        },
     {
         name: "create_overlay_styles_table",
         query: `
@@ -188,6 +219,15 @@ export default [
         `
     },
     {
+        name: "create_overlay_styles_trigger",
+        query: `
+            CREATE TRIGGER update_overlay_styles_updated_at BEFORE UPDATE ON overlay_styles FOR EACH ROW EXECUTE PROCEDURE update_at_column();
+            `,
+        rollback_query: `
+            DROP TRIGGER update_overlay_styles_updated_at;
+        `
+    },
+    {
         name: "create_stream_polls_table",
         query: `
             CREATE TABLE stream_polls (
@@ -208,10 +248,12 @@ export default [
     {
         name: "create_stream_polls_idx",
         query: `
+            CREATE TRIGGER update_stream_polls_updated_at BEFORE UPDATE ON stream_polls FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_polls_stream_id_idx ON stream_polls (stream_id);
             CREATE INDEX stream_polls_user_id_idx ON stream_polls (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_polls_updated_at;
             DROP INDEX stream_polls_user_id_idx;
         `
     },
@@ -233,9 +275,11 @@ export default [
     {
         name: "create_stream_poll_options_idx",
         query: `
+            CREATE TRIGGER update_stream_poll_options_updated_at BEFORE UPDATE ON stream_poll_options FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_poll_options_poll_id_idx ON stream_poll_options (poll_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_poll_options_updated_at;
             DROP INDEX stream_poll_options_poll_id_idx;
         `
     },
@@ -285,9 +329,11 @@ export default [
     {
         name: "create_stream_milestone_table_idx",
         query: `
+            CREATE TRIGGER update_stream_milestones_updated_at BEFORE UPDATE ON stream_milestones FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_milestone_user_id_idx ON stream_milestones (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_milestones_updated_at;
             DROP INDEX stream_milestone_user_id_idx;
         `
     },
@@ -334,10 +380,12 @@ export default [
     {
         name: "create_stream_leaderboard_table_idx",
         query: `
+            CREATE TRIGGER update_stream_leaderboards_updated_at BEFORE UPDATE ON stream_leaderboards FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_leaderboard_status_idx ON stream_leaderboards (status);
             CREATE INDEX stream_leaderboard_user_id_idx ON stream_leaderboards (user_id);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_leaderboards_updated_at;
             DROP INDEX stream_leaderboard_status_idx;
             DROP INDEX stream_leaderboard_user_id_idx;
         `
@@ -376,10 +424,12 @@ export default [
     {
         name: "create_stream_triggers_table_idx",
         query: `
+            CREATE TRIGGER update_stream_triggers_updated_at BEFORE UPDATE ON stream_triggers FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_triggers_user_id_idx ON stream_triggers (user_id);
             CREATE INDEX stream_triggers_status_idx ON stream_triggers (status);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_triggers_updated_at;
             DROP INDEX stream_triggers_user_id_idx;
             DROP INDEX stream_triggers_status_idx;
         `
@@ -409,10 +459,12 @@ export default [
     {
         name: "create_stream_announcements_table_idx",
         query: `
+            CREATE TRIGGER update_stream_announcements_updated_at BEFORE UPDATE ON stream_announcements FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_announcements_user_id_idx ON stream_announcements (user_id);
             CREATE INDEX stream_announcements_status_idx ON stream_announcements (status);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_announcements_updated_at;
             DROP INDEX stream_announcements_user_id_idx;
             DROP INDEX stream_announcements_status_idx;
         `
@@ -437,10 +489,12 @@ export default [
     {
         name: "create_stream_qr_table_idx",
         query: `
+            CREATE TRIGGER update_stream_qr_updated_at BEFORE UPDATE ON stream_qr FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_qr_user_id_idx ON stream_qr (user_id);
             CREATE INDEX stream_qr_status_idx ON stream_qr (status);
             `,
         rollback_query: `
+            DROP TRIGGER update_stream_qr_updated_at;
             DROP INDEX stream_qr_user_id_idx;
             DROP INDEX stream_qr_status_idx;
         `
