@@ -5,6 +5,7 @@ import { Socket, Server } from 'socket.io';
 import cors from 'cors';import _ from 'lodash';
 import path from 'path';
 import dotenv from 'dotenv';
+import { userRoutes } from './src/Routes/users';
 dotenv.config({ path: path.join(__dirname, '.env')});
 
 process.on('uncaughtException', function (err) {
@@ -24,6 +25,9 @@ app.use(cors({
     credentials: true
 }));
 
+// include all the routes
+app.use('/user', userRoutes);
+
 //connect app to websocket
 let http = createServer(app);
 /* let io = new Server(http, {
@@ -35,7 +39,7 @@ let http = createServer(app);
 
 //websocket functions
 /* io.on('connection', (socket: Socket) => {
-    
+
 }); */
 
 //api endpoints

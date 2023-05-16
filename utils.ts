@@ -5,6 +5,7 @@ dotenv.config({ path: path.join(__dirname, '.env')});
 import axios, { AxiosRequestHeaders, AxiosRequestConfig, AxiosResponse } from "axios";
 import crypto from "crypto";
 import DB from './src/DB';
+import _ from 'lodash';
 
 export function sleep(ms: number) {
     return new Promise((resolve, reject) => {
@@ -223,4 +224,23 @@ export const isCurrentUserAdmin = async(discord_id: string) => {
     let query = `select count(*) as admin_count from admins where discord_id = '${discord_id}'`;
     let result = await db.executeQueryForSingleResult<{ admin_count: number }>(query);
     return result !== undefined && result.admin_count > 0;
+}
+
+export const formatDBParamsToStr = (params: {[key: string]: any}, separator: string = ', ', valueOnly: boolean = false) => {
+    let stringParams: string[] = [];
+    _.map(params, (p, k) => {
+        const value = typeof p === 'string' ? `'${p}'` : p;
+
+        if (valueOnly) {
+            stringParams.push(`${value}`);
+        } else {
+            stringParams.push(`${k} = ${value}`);
+        }
+    })
+
+    return _.join(stringParams, separator);
+}
+
+export const getAssetUrl = (url: string) => {
+    return `${process.env.DOMAIN}/${url}`;
 }

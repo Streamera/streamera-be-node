@@ -11,3 +11,4 @@ package-lock.json
 test.ts
 *.log
 yarn.lock
+public/content/*
