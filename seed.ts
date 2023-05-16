@@ -12,6 +12,16 @@ import * as Payment from './src/Payments';
         "signature":"35367e8e7ccbb27acfec785ca4af6e12ae35d768"
     });
 
+    await User.update(1, {
+        "name": "First revised",
+        "twitch": "twitch.tv/first",
+        "facebook": "fb.com/first",
+        "discord":"dicord.com/first125123",
+        "to_chain":"97",
+        "to_token_symbol":"wbnb",
+        "to_token_address":"0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd"
+    })
+
     await User.create({
         "name":"Second 2",
         "wallet":"0x801Df8bD5C0C24D9B942a20627CAF1Bd34427804",

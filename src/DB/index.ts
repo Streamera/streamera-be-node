@@ -1,6 +1,6 @@
 import migrations from './migrations';
 import pg, { Client } from 'pg';
-import { getDbConfig, getUTCMoment } from '../../utils';
+import { getDbConfig, getUTCMoment, formatDBParamsToStr } from '../../utils';
 
 /** Fix big int returning as string */
 pg.types.setTypeParser(20, BigInt); // Type Id 20 = BIGINT | BIGSERIAL

@@ -9,4 +9,15 @@ export type User = {
     status?: UserStatus;
     created_at?: string;
     updated_at?: string;
+    to_chain?: number;
+    to_token_symbol?: string;
+    to_token_address?: string;
+    twitch?: string;
+    discord?: string;
+    youtube?: string;
+    instagram?: string;
+    tiktok?: string;
+    twitter?: string;
+    facebook?: string;
+    email?: string;
 }

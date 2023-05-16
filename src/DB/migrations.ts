@@ -70,8 +70,6 @@ export default [
                 to_chain int default 0,
                 to_token_symbol text not null default '',
                 to_token_address text not null default '',
-                signature text not null default '',
-                profile_picture text not null default '',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
             );`,
@@ -99,8 +97,7 @@ export default [
                 type social_media_type not null,
                 url text not null default '',
                 created_at timestamp default current_timestamp,
-                updated_at timestamp,
-                deleted_at timestamp
+                updated_at timestamp
             );`,
         rollback_query: `
             DROP TABLE user_social_media;
@@ -192,16 +189,23 @@ export default [
             CREATE INDEX stream_payments_status_idx ON stream_payments (status);
             CREATE INDEX stream_payments_from_user_idx ON stream_payments (from_user);
             CREATE INDEX stream_payments_to_user_idx ON stream_payments (to_user);
-            CREATE UNIQUE INDEX CONCURRENTLY stream_payments_tx_hash_idx ON equipment (tx_hash);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_payments_updated_at;
             DROP INDEX stream_payments_status_idx;
             DROP INDEX stream_payments_from_user_idx;
             DROP INDEX stream_payments_to_user_idx;
+            `
+    },
+    {
+        name: "create_stream_payments_unique_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY stream_payments_tx_hash_idx ON stream_payments (tx_hash);
+            `,
+        rollback_query: `
             DROP INDEX stream_payments_tx_hash_idx;
             `
-        },
+    },
     {
         name: "create_overlay_styles_table",
         query: `

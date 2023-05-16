@@ -256,3 +256,25 @@ export const convertBigIntToString = (obj : any) => {
     }
     return obj;
 }
+
+// https://stackoverflow.com/questions/1109061/insert-on-duplicate-update-in-postgresql
+export const getUpsertQuery = (table: string, updateField: {[key: string]: any}, insertField: {[key: string]: any}, searchField: {[key: string]: any}): string => {
+    // UPDATE table SET field='C', field2='Z' WHERE id=3;
+    // INSERT INTO table (id, field, field2)
+    //     SELECT 3, 'C', 'Z'
+    //     WHERE NOT EXISTS (SELECT 1 FROM table WHERE id=3);
+
+    const updateValue = formatDBParamsToStr(updateField, ', ');
+    const searchValue = formatDBParamsToStr(searchField, ' AND ');
+    const insertColumn = _.join(Object.keys(insertField), ', ');
+    const insertValue = formatDBParamsToStr(insertField, ', ', true);
+
+    const query = `
+        UPDATE ${table} SET ${updateValue} WHERE ${searchValue};
+        INSERT INTO ${table} (${insertColumn})
+            SELECT ${insertValue}
+            WHERE NOT EXISTS (SELECT 1 FROM ${table} WHERE ${searchValue});
+    `;
+
+    return query;
+}
