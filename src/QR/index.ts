@@ -43,9 +43,9 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     return result;
 }
 
-// view (single - user_id)
-export const view = async(userId: number): Promise<QR> => {
-    const query = `SELECT * FROM ${table} WHERE user_id = ${userId} LIMIT 1`;
+// view (single - id)
+export const view = async(id: number): Promise<QR> => {
+    const query = `SELECT * FROM ${table} WHERE id = ${id} LIMIT 1`;
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
@@ -95,8 +95,8 @@ export const list = async(): Promise<QR[]> => {
 }
 
 // update
-export const update = async(userId: number, updateParams: {[key: string]: any}): Promise<void> => {
-    const qr = await view(userId);
+export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
+    const qr = await view(id);
 
     // update style
     await StylesController.update(qr.style_id, updateParams);
@@ -106,7 +106,7 @@ export const update = async(userId: number, updateParams: {[key: string]: any}):
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 
-    const query = `UPDATE ${table} SET ${params} WHERE user_id = ${userId}`;
+    const query = `UPDATE ${table} SET ${params} WHERE id = ${id}`;
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);

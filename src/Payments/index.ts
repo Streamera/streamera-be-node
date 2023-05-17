@@ -25,9 +25,9 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     return result;
 }
 
-// view (single - user_id)
-export const view = async(userId: number): Promise<Payment> => {
-    const query = `SELECT * FROM ${table} WHERE id = ${userId} LIMIT 1`;
+// view (single - id)
+export const view = async(id: number): Promise<Payment> => {
+    const query = `SELECT * FROM ${table} WHERE id = ${id} LIMIT 1`;
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);

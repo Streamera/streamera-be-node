@@ -9,7 +9,7 @@ const table = 'streams';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'user_id', 'title', 'description', 'thumbnail', 'start_at', 'end_at', 'status' ];
+    const fillableColumns = [ 'id', 'title', 'description', 'thumbnail', 'start_at', 'end_at', 'status' ];
 
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);
@@ -25,9 +25,9 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     return result;
 }
 
-// view (single - user_id)
-export const view = async(userId: number): Promise<Streams> => {
-    const query = `SELECT * FROM ${table} WHERE deleted_at IS NULL AND id = ${userId} LIMIT 1`;
+// view (single - id)
+export const view = async(id: number): Promise<Streams> => {
+    const query = `SELECT * FROM ${table} WHERE deleted_at IS NULL AND id = ${id} LIMIT 1`;
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);

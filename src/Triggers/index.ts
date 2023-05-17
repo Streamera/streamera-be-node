@@ -31,7 +31,7 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     return result;
 }
 
-// view (single - user_id)
+// view (single - id)
 export const view = async(id: number): Promise<Trigger> => {
     const query = `SELECT * FROM ${table} WHERE ${ignoreSoftDeleted} AND id = ${id} LIMIT 1`;
 
