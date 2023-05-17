@@ -14,7 +14,7 @@ import * as StylesController from '../OverlayStyles/index';
 const table = 'stream_qr';
 
 // create
-export const create = async(insertParams: any): Promise<void> => {
+export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();
 
     // get user details
@@ -54,7 +54,6 @@ export const view = async(userId: number): Promise<QR> => {
         result.qr = getAssetUrl(result.qr);
         const style = await StylesController.view(result.style_id);
 
-        // merge
         _.merge(result, style);
     }
 
@@ -69,11 +68,16 @@ export const find = async(whereParams: {[key: string]: any}): Promise<QR[]> => {
     const db = new DB();
     const result: QR[] | undefined = await db.executeQueryForResults(query);
 
-    _.map(result, (r, k) => {
-        result![k].qr = getAssetUrl(result![k].qr);
-    })
+    await Promise.all(
+        _.map(result, async(r, k) => {
+            result![k].qr = getAssetUrl(result![k].qr);
+            const style = await StylesController.view(result![k].style_id);
 
-    return result as QR[];
+            _.merge(result![k], style);
+        })
+    );
+
+    return result as QR[] ?? [];
 }
 
 // list (all)
@@ -83,7 +87,11 @@ export const list = async(): Promise<QR[]> => {
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as QR[];
+    _.map(result, (r, k) => {
+        result![k].qr = getAssetUrl(result![k].qr);
+    })
+
+    return result as QR[] ?? [];
 }
 
 // update

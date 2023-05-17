@@ -9,6 +9,7 @@ import { routes as userRoutes } from './src/Routes/users';
 import { routes as paymentRoutes } from './src/Routes/payments';
 import { routes as streamRoutes } from './src/Routes/streams';
 import { routes as qrRoutes } from './src/Routes/qr';
+import { routes as triggerRoutes } from './src/Routes/triggers';
 dotenv.config({ path: path.join(__dirname, '.env')});
 
 process.on('uncaughtException', function (err) {
@@ -33,6 +34,7 @@ app.use('/user', userRoutes);
 app.use('/payment', paymentRoutes);
 app.use('/stream', streamRoutes);
 app.use('/qr', qrRoutes);
+app.use('/trigger', triggerRoutes);
 
 // serve assets like images / video / etc
 app.use('/assets', express.static('public/content'));

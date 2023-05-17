@@ -43,7 +43,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Payment[]>
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as Payment[];
+    return result as Payment[] ?? [];
 }
 
 // list (all)
@@ -53,7 +53,7 @@ export const list = async(): Promise<Payment[]> => {
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as Payment[];
+    return result as Payment[] ?? [];
 }
 
 // update

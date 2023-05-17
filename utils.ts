@@ -221,6 +221,15 @@ export const isCurrentUserAdmin = async (discord_id : string) => {
     return result !== undefined && result.admin_count > 0;
 }
 
+/**
+ * Use to construct postgres insert, where, select columns / values query
+ * @date 2023-05-17
+ * @param { {
+    [key : string]: any
+} } params
+ * @param { * } parm2
+ * @param { * } parm3
+ */
 export const formatDBParamsToStr = (params : {
     [key : string]: any
 }, separator : string = ', ', valueOnly : boolean = false) => {
@@ -238,12 +247,22 @@ export const formatDBParamsToStr = (params : {
     return _.join(stringParams, separator);
 }
 
+/**
+ * Append hostname file path, construct url
+ * @date 2023-05-17
+ * @param { string } url
+ */
 export const getAssetUrl = (url : string) => {
     return `http://${
         process.env.DOMAIN
     }/assets/${url}`;
 }
 
+/**
+ * Convert bigint inside obj into string (faciliate JSON.stringify)
+ * @date 2023-05-17
+ * @param { any } obj
+ */
 export const convertBigIntToString = (obj : any) => {
     if (typeof obj === 'object') {
         for (let key in obj) {
@@ -258,6 +277,15 @@ export const convertBigIntToString = (obj : any) => {
 }
 
 // https://stackoverflow.com/questions/1109061/insert-on-duplicate-update-in-postgresql
+/**
+ * Postgres upsert function
+ * @date 2023-05-17
+ * @param { string } table
+ * @param { {[key: string]: any} } updateField
+ * @param { {[key: string]: any} } insertField
+ * @param { {[key: string]: any} } searchField
+ * @returns { string }
+ */
 export const getUpsertQuery = (table: string, updateField: {[key: string]: any}, insertField: {[key: string]: any}, searchField: {[key: string]: any}): string => {
     // UPDATE table SET field='C', field2='Z' WHERE id=3;
     // INSERT INTO table (id, field, field2)
@@ -277,4 +305,21 @@ export const getUpsertQuery = (table: string, updateField: {[key: string]: any},
     `;
 
     return query;
+}
+
+type mimeTypes = 'video' | 'image';
+export const checkAllowedMime = (mime: string, checkTypes: mimeTypes[]): boolean => {
+    const allowed = {
+        'video': ['video/mp4', 'video/mpeg', 'video/quicktime'],
+        'image': ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp']
+    }
+
+    let valid = false;
+    _.map(checkTypes, (type) => {
+        if (!valid) {
+            valid = allowed[type].includes(mime);
+        }
+    });
+
+    return valid;
 }

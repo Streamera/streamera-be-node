@@ -1,27 +1,11 @@
 import { Router } from 'express';
 import * as controller from '../Users/index';
-import multer from 'multer';
-import path from 'path';
-import appRoot from 'app-root-path';
-import { v4 as uuidv4 } from 'uuid';
+import { contentUpload } from '../Upload';
 import _ from 'lodash';
 import fs from 'fs-extra';
+import { checkAllowedMime } from '../../utils';
 
 export const routes = Router();
-
-const contentPath = 'public/content';
-const contentStorage = multer.diskStorage({
-    destination: function (req, file, cb) {
-        cb(null, path.join(appRoot.toString(), contentPath))
-    },
-    filename: function ( req, file, cb ) {
-        //How could I get the new_file_name property sent from client here?
-        const extension = path.extname(file.originalname);
-        // const fileName = path.basename(file.originalname,extension);
-        cb(null, `${uuidv4()}${extension}`);
-    }
-});
-const contentUpload = multer({ storage: contentStorage });
 
 // list
 routes.get('/', async (req, res) => {
@@ -39,7 +23,7 @@ routes.post('/find', async (req, res) => {
 });
 
 // create
-routes.post('/', contentUpload.single('profile_picture'), async(req, res) => {
+routes.post('/', async(req, res) => {
     let data = req.body;
     const result = await controller.create(data);
 
@@ -50,13 +34,10 @@ routes.post('/', contentUpload.single('profile_picture'), async(req, res) => {
 // have to use POST to update (because multer does not support PUT)
 routes.post('/update/:id', contentUpload.single('profile_picture'), async(req, res) => {
     let data = req.body;
-
-    const whitelistMimes = ['image/jpeg', 'image/jpg', 'image/gif', 'image/png', 'image/webp', 'video/mp4', 'video/mpeg', 'video/quicktime'];
-
     const mime = req.file?.mimetype;
 
     // delete file if not in whitelist
-    if (mime && !whitelistMimes.includes(mime)) {
+    if (mime && !checkAllowedMime(mime, ['image'])) {
         await fs.remove(req.file?.path!);
     }
 

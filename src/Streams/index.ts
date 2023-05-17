@@ -18,7 +18,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     const insertColumns = Object.keys(filtered);
 
     const query = `INSERT INTO ${table} (${_.join(insertColumns, ', ')}) VALUES (${params}) RETURNING id`;
-    console.log(query);
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
@@ -54,7 +53,7 @@ export const list = async(): Promise<Streams[]> => {
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as Streams[];
+    return result as Streams[] ?? [];
 }
 
 // update

@@ -41,7 +41,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<OverlaySty
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as OverlayStyles[];
+    return result as OverlayStyles[] ?? [];
 }
 
 // list (all)
@@ -51,7 +51,7 @@ export const list = async(): Promise<OverlayStyles[]> => {
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as OverlayStyles[];
+    return result as OverlayStyles[] ?? [];
 }
 
 // update

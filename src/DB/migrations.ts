@@ -393,11 +393,18 @@ export default [
         query: `
             CREATE TRIGGER update_stream_leaderboards_updated_at BEFORE UPDATE ON stream_leaderboards FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_leaderboard_status_idx ON stream_leaderboards (status);
-            CREATE UNIQUE INDEX CONCURRENTLY stream_leaderboard_user_id_idx ON stream_leaderboards (user_id);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_leaderboards_updated_at;
             DROP INDEX stream_leaderboard_status_idx;
+        `
+    },
+    {
+        name: "create_stream_leaderboard_concurrently_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY stream_leaderboard_user_id_idx ON stream_leaderboards (user_id);
+            `,
+        rollback_query: `
             DROP INDEX stream_leaderboard_user_id_idx;
         `
     },
@@ -415,15 +422,16 @@ export default [
     {
         name: "create_stream_trigger_table",
         query: `
-            CREATE TYPE trigger_type AS ENUM ('common', 'milestone', 'poll');
+            CREATE TYPE trigger_type AS ENUM ('alltime', 'milestone', 'poll');
+            CREATE TYPE trigger_status AS ENUM ('active', 'inactive');
 
             CREATE TABLE stream_triggers (
                 id serial PRIMARY KEY,
                 user_id int not null,
                 style_id int not null default 0,
                 content text not null default '',
-                type trigger_type default 'common',
-                status leaderboard_status default 'inactive',
+                type trigger_type default 'alltime',
+                status trigger_status default 'inactive',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp,
                 deleted_at timestamp
@@ -502,13 +510,20 @@ export default [
         name: "create_stream_qr_table_idx",
         query: `
             CREATE TRIGGER update_stream_qr_updated_at BEFORE UPDATE ON stream_qr FOR EACH ROW EXECUTE PROCEDURE update_at_column();
-            CREATE UNIQUE INDEX CONCURRENTLY stream_qr_user_id_idx ON stream_qr (user_id);
             CREATE INDEX stream_qr_status_idx ON stream_qr (status);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_qr_updated_at;
-            DROP INDEX stream_qr_user_id_idx;
             DROP INDEX stream_qr_status_idx;
+        `
+    },
+    {
+        name: "create_stream_qr_concurrently_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY stream_qr_user_id_idx ON stream_qr (user_id);
+            `,
+        rollback_query: `
+            DROP INDEX stream_qr_user_id_idx;
         `
     },
 ];

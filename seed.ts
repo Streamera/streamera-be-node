@@ -5,6 +5,9 @@ dotenv.config({ path: path.join(__dirname, '.env')});
 import * as User from './src/Users';
 import * as Payment from './src/Payments';
 import * as Stream from './src/Streams';
+import * as QR from './src/QR';
+import * as Trigger from './src/Triggers';
+import { Query } from 'pg';
 
 (async() => {
     await User.create({
@@ -54,6 +57,32 @@ import * as Stream from './src/Streams';
         "start_at": null,
         "end_at": null,
         "status": "scheduled"
+    });
+
+    await QR.create({
+        "user_id": 1,
+        "font_type": "",
+        "font_size": "",
+        "font_color": "",
+        "bg_color": "",
+        "bg_image": "",
+        "bar_empty_color": "",
+        "bar_filled_color": "",
+        "position": "middle-center"
+    });
+
+    await Trigger.create({
+        "user_id":"1",
+        "font_type":"serif",
+        "font_size":"14",
+        "font_color":"#000000",
+        "bg_color":"",
+        "bg_image":"",
+        "bar_empty_color":"",
+        "bar_filled_color":"",
+        "position":"middle-center",
+        "status":"active",
+        "type":"alltime"
     });
 
     console.log('Seed ended, press CTRL / CMD + C');
