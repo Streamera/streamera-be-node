@@ -28,9 +28,10 @@ export const view = async(id: number): Promise<OverlayStyles> => {
     const query = `SELECT * FROM ${table} WHERE id = ${id} LIMIT 1`;
 
     const db = new DB();
-    const result = await db.executeQueryForSingleResult(query);
+    let result = await db.executeQueryForSingleResult(query);
+    result = _.omit(result, ['id', 'created_at', 'updated_at']);
 
-    return result;
+    return result ?? {};
 }
 
 // find (all match)

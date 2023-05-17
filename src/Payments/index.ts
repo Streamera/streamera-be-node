@@ -32,7 +32,7 @@ export const view = async(userId: number): Promise<Payment> => {
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
 
-    return result;
+    return result ?? {};
 }
 
 // find (all match)

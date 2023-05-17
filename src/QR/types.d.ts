@@ -1,3 +1,4 @@
+import OverlayPosition from '../OverlayStyles/types';
 export type QRStatus = 'active' | 'inactive';
 
 export type QR = {
@@ -15,5 +16,5 @@ export type QR = {
     bg_image?: string;
     bar_empty_color?: string;
     bar_filled_color?: string;
-    position?: string;
+    position?: OverlayPosition;
 }

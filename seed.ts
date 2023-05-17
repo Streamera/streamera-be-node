@@ -7,6 +7,7 @@ import * as Payment from './src/Payments';
 import * as Stream from './src/Streams';
 import * as QR from './src/QR';
 import * as Trigger from './src/Triggers';
+import * as Announcement from './src/Announcements';
 import { Query } from 'pg';
 
 (async() => {
@@ -72,7 +73,25 @@ import { Query } from 'pg';
     });
 
     await Trigger.create({
-        "user_id":"1",
+        "user_id": 1,
+        "font_type":"serif",
+        "font_size":"14",
+        "font_color":"#000000",
+        "bg_color":"",
+        "bg_image":"",
+        "bar_empty_color":"",
+        "bar_filled_color":"",
+        "position":"middle-center",
+        "status":"active",
+        "type":"alltime"
+    });
+
+    await Announcement.create({
+        "user_id":1,
+        "content": "lai liao lai liao",
+        "speed": 500,
+        "start_at": "2023-05-17 00:00:00",
+        "end_at": "2023-12-23 00:00:00",
         "font_type":"serif",
         "font_size":"14",
         "font_color":"#000000",

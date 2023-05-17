@@ -57,7 +57,7 @@ export const view = async(userId: number): Promise<QR> => {
         _.merge(result, style);
     }
 
-    return result;
+    return result ?? {};
 }
 
 // find (all match)

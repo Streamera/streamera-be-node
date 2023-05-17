@@ -60,7 +60,7 @@ export const view = async(id: number): Promise<User> => {
     result.profile_picture = result.profile_picture ? getAssetUrl(result.profile_picture) : null;
     result.social = socialMedia;
 
-    return result;
+    return result ?? {};
 }
 
 // find (all match)
@@ -102,7 +102,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
         result![k].social = socialMedia;
     });
 
-    return result as User[];
+    return result as User[] ?? [];
 }
 
 // list (all)
@@ -138,7 +138,7 @@ export const list = async(): Promise<User[]> => {
         result![k].social = socialMedia;
     });
 
-    return result as User[];
+    return result as User[] ?? [];
 }
 
 // update

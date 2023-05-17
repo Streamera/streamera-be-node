@@ -32,7 +32,7 @@ export const view = async(userId: number): Promise<Streams> => {
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
 
-    return result;
+    return result ?? {};
 }
 
 // find (all match)
@@ -43,7 +43,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Streams[]>
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as Streams[];
+    return result as Streams[] ?? [];
 }
 
 // list (all)
