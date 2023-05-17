@@ -371,7 +371,7 @@ export default [
     {
         name: "create_stream_leaderboard_table",
         query: `
-            CREATE TYPE leaderboard_timeframe AS ENUM ('monthly', 'weekly', 'daily', 'once');
+            CREATE TYPE leaderboard_timeframe AS ENUM ('monthly', 'weekly', 'daily');
             CREATE TYPE leaderboard_status AS ENUM ('active', 'inactive');
 
             CREATE TABLE stream_leaderboards (
@@ -408,17 +408,17 @@ export default [
             DROP INDEX stream_leaderboard_user_id_idx;
         `
     },
-    {
-        name: "create_stream_leaderboard_payments_table",
-        query: `
-            CREATE TABLE stream_leaderboard_payments (
-                leaderboard_id bigint not null,
-                payment_id bigint not null
-            );`,
-        rollback_query: `
-            DROP TABLE stream_leaderboard_payments;
-        `
-    },
+    // {
+    //     name: "create_stream_leaderboard_payments_table",
+    //     query: `
+    //         CREATE TABLE stream_leaderboard_payments (
+    //             leaderboard_id bigint not null,
+    //             payment_id bigint not null
+    //         );`,
+    //     rollback_query: `
+    //         DROP TABLE stream_leaderboard_payments;
+    //     `
+    // },
     {
         name: "create_stream_trigger_table",
         query: `

@@ -11,6 +11,7 @@ import { routes as streamRoutes } from './src/Routes/streams';
 import { routes as qrRoutes } from './src/Routes/qr';
 import { routes as triggerRoutes } from './src/Routes/triggers';
 import { routes as announcementRoutes } from './src/Routes/announcements';
+import { routes as leaderboardRoutes } from './src/Routes/leaderboards';
 dotenv.config({ path: path.join(__dirname, '.env')});
 
 process.on('uncaughtException', function (err) {
@@ -37,6 +38,7 @@ app.use('/stream', streamRoutes);
 app.use('/qr', qrRoutes);
 app.use('/trigger', triggerRoutes);
 app.use('/announcement', announcementRoutes);
+app.use('/leaderboard', leaderboardRoutes);
 
 // serve assets like images / video / etc
 app.use('/assets', express.static('public/content'));

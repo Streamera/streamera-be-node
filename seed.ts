@@ -104,6 +104,21 @@ import { Query } from 'pg';
         "type":"alltime"
     });
 
+    await Announcement.create({
+        "user_id": 1,
+        "title": "Big Bang Board",
+        "status": 'active',
+        "timeframe": 'daily',
+        "font_type":"serif",
+        "font_size":"14",
+        "font_color":"#000000",
+        "bg_color":"",
+        "bg_image":"",
+        "bar_empty_color":"",
+        "bar_filled_color":"",
+        "position":"middle-center",
+    });
+
     console.log('Seed ended, press CTRL / CMD + C');
     return;
 })();
