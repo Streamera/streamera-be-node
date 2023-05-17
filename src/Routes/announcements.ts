@@ -40,7 +40,7 @@ routes.post('/update/:id', async(req, res) => {
     return res.json({ success: true });
 });
 
-// remove (trigger id)
+// remove (id)
 routes.post('/remove/:id', async(req, res) => {
     await controller.remove(parseInt(req.params.id));
 

@@ -318,7 +318,7 @@ export default [
     {
         name: "create_stream_milestone_table",
         query: `
-            CREATE TYPE poll_timeframe AS ENUM ('monthly', 'weekly', 'daily', 'once');
+            CREATE TYPE poll_timeframe AS ENUM ('monthly', 'weekly', 'daily');
 
             CREATE TABLE stream_milestones (
                 id bigserial PRIMARY KEY,
@@ -464,7 +464,7 @@ export default [
                 style_id int not null default 0,
                 content text not null default '',
                 speed int not null default 500,
-                start_at timestamp,
+                start_at timestamp ,
                 end_at timestamp,
                 status announcement_status default 'inactive',
                 created_at timestamp default current_timestamp,

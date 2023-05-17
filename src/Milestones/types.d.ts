@@ -1,16 +1,18 @@
 import OverlayPosition from '../OverlayStyles/types';
-export type LeaderboardStatus = 'active' | 'inactive';
-export type LeaderboardTimeframe = 'monthly' | 'weekly' | 'daily';
+export type MilestoneStatus = 'active' | 'inactive';
+export type MilestoneTimeframe = 'monthly' | 'weekly' | 'daily';
 
-export type Leaderboard = {
+export type Milestone = {
     id?: number;
     user_id: string;
     title: string;
+    target: string;
     style_id: number;
-    status: LeaderboardStatus;
-    timeframe: LeaderboardTimeframe;
+    status: MilestoneStatus;
+    timeframe: MilestoneTimeframe;
     created_at?: string;
     updated_at?: string;
+    deleted_at?: string;
     font_type?: string;
     font_size?: string;
     font_color?: string;

@@ -8,6 +8,7 @@ import * as Stream from './src/Streams';
 import * as QR from './src/QR';
 import * as Trigger from './src/Triggers';
 import * as Announcement from './src/Announcements';
+import * as Milestone from './src/Milestones';
 import { Query } from 'pg';
 
 (async() => {
@@ -116,7 +117,24 @@ import { Query } from 'pg';
         "bg_image":"",
         "bar_empty_color":"",
         "bar_filled_color":"",
-        "position":"middle-center",
+        "position":"middle-center"
+    });
+
+    await Milestone.create({
+        "user_id": 1,
+        "title": "Big Bang Board",
+        "target": "10000.00",
+        "start_at": null,
+        "end_at": null,
+        "timeframe": "daily",
+        "font_type":"serif",
+        "font_size":"14",
+        "font_color":"#000000",
+        "bg_color":"",
+        "bg_image":"",
+        "bar_empty_color":"",
+        "bar_filled_color":"",
+        "position":"middle-center"
     });
 
     console.log('Seed ended, press CTRL / CMD + C');
