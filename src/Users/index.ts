@@ -11,17 +11,22 @@ import { User } from "./types";
 const table = 'users';
 
 // create
-export const create = async(insertParams: any): Promise<void> => {
+export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
+    const db = new DB();
+
     const fillableColumns = [ 'name', 'wallet', 'signature', 'profile_picture' ];
-    const params = formatDBParamsToStr(_.pick(insertParams, fillableColumns), ', ', true);
+
+    const filtered = _.pick(insertParams, fillableColumns);
+    const params = formatDBParamsToStr(filtered, ', ', true);
 
     // put quote
-    const insertColumns = Object.keys(insertParams);
+    const insertColumns = Object.keys(filtered);
 
     const query = `INSERT INTO ${table} (${_.join(insertColumns, ', ')}) VALUES (${params}) RETURNING id`;
 
-    const db = new DB();
-    await db.executeQueryForSingleResult(query);
+    const result = await db.executeQueryForSingleResult(query);
+
+    return result;
 }
 
 // view (single - user_id)
@@ -36,7 +41,7 @@ export const view = async(id: number): Promise<User> => {
         ON ${table}.id = d.user_id
         WHERE ${table}.id = ${id} AND status = 'active' LIMIT 1`;
     const result = await db.executeQueryForSingleResult(query);
-    console.log(query);
+
     // return if no user found
     if (!result || result.length == 0) {
         return {} as User;
@@ -58,7 +63,7 @@ export const view = async(id: number): Promise<User> => {
     return result;
 }
 
-// find (single - field)
+// find (all match)
 export const find = async(whereParams: {[key: string]: any}): Promise<User[]> => {
     const db = new DB();
 

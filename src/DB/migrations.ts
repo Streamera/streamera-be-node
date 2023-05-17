@@ -393,7 +393,7 @@ export default [
         query: `
             CREATE TRIGGER update_stream_leaderboards_updated_at BEFORE UPDATE ON stream_leaderboards FOR EACH ROW EXECUTE PROCEDURE update_at_column();
             CREATE INDEX stream_leaderboard_status_idx ON stream_leaderboards (status);
-            CREATE INDEX stream_leaderboard_user_id_idx ON stream_leaderboards (user_id);
+            CREATE UNIQUE INDEX CONCURRENTLY stream_leaderboard_user_id_idx ON stream_leaderboards (user_id);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_leaderboards_updated_at;
@@ -488,6 +488,7 @@ export default [
             CREATE TABLE stream_qr (
                 id serial PRIMARY KEY,
                 user_id int not null,
+                qr text not null,
                 style_id int not null default 0,
                 status qr_status default 'inactive',
                 created_at timestamp default current_timestamp,
@@ -501,7 +502,7 @@ export default [
         name: "create_stream_qr_table_idx",
         query: `
             CREATE TRIGGER update_stream_qr_updated_at BEFORE UPDATE ON stream_qr FOR EACH ROW EXECUTE PROCEDURE update_at_column();
-            CREATE INDEX stream_qr_user_id_idx ON stream_qr (user_id);
+            CREATE UNIQUE INDEX CONCURRENTLY stream_qr_user_id_idx ON stream_qr (user_id);
             CREATE INDEX stream_qr_status_idx ON stream_qr (status);
             `,
         rollback_query: `

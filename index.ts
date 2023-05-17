@@ -8,6 +8,7 @@ import dotenv from 'dotenv';
 import { routes as userRoutes } from './src/Routes/users';
 import { routes as paymentRoutes } from './src/Routes/payments';
 import { routes as streamRoutes } from './src/Routes/streams';
+import { routes as qrRoutes } from './src/Routes/qr';
 dotenv.config({ path: path.join(__dirname, '.env')});
 
 process.on('uncaughtException', function (err) {
@@ -31,6 +32,10 @@ app.use(cors({
 app.use('/user', userRoutes);
 app.use('/payment', paymentRoutes);
 app.use('/stream', streamRoutes);
+app.use('/qr', qrRoutes);
+
+// serve assets like images / video / etc
+app.use('/assets', express.static('public/content'));
 
 //connect app to websocket
 let http = createServer(app);

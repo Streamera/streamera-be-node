@@ -41,9 +41,9 @@ routes.post('/find', async (req, res) => {
 // create
 routes.post('/', contentUpload.single('profile_picture'), async(req, res) => {
     let data = req.body;
-    await controller.create(data);
+    const result = await controller.create(data);
 
-    return res.json({ success: true });
+    return res.json({ success: true, data: result });
 });
 
 // update

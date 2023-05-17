@@ -61,7 +61,7 @@ routes.post('/', contentUpload.single('thumbnail'), async(req, res) => {
 
     const result = await controller.create(data);
 
-    return res.json({ success: true });
+    return res.json({ success: true, data: result });
 });
 
 // update

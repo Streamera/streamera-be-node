@@ -3,22 +3,19 @@ import {
     formatDBParamsToStr,
 } from '../../utils';
 import _ from "lodash";
-import { Streams } from "./types";
+import { OverlayStyles } from "./types";
 
-const table = 'streams';
+const table = 'overlay_styles';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'user_id', 'title', 'description', 'thumbnail', 'start_at', 'end_at', 'status' ];
-
+    const fillableColumns = [ 'font_type', 'font_size', 'font_color', 'bg_color', 'bg_image', 'bar_empty_color', 'bar_filled_color', 'position' ];
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);
 
     // put quote
     const insertColumns = Object.keys(filtered);
-
     const query = `INSERT INTO ${table} (${_.join(insertColumns, ', ')}) VALUES (${params}) RETURNING id`;
-    console.log(query);
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
@@ -26,9 +23,9 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     return result;
 }
 
-// view (single - user_id)
-export const view = async(userId: number): Promise<Streams> => {
-    const query = `SELECT * FROM ${table} WHERE deleted_at IS NULL AND id = ${userId} LIMIT 1`;
+// view (single - id)
+export const view = async(id: number): Promise<OverlayStyles> => {
+    const query = `SELECT * FROM ${table} WHERE id = ${id} LIMIT 1`;
 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
@@ -37,44 +34,45 @@ export const view = async(userId: number): Promise<Streams> => {
 }
 
 // find (all match)
-export const find = async(whereParams: {[key: string]: any}): Promise<Streams[]> => {
+export const find = async(whereParams: {[key: string]: any}): Promise<OverlayStyles[]> => {
     const params = formatDBParamsToStr(whereParams, ' AND ');
-    const query = `SELECT * FROM ${table} WHERE deleted_at IS NULL AND ${params}`;
+    const query = `SELECT * FROM ${table} WHERE ${params}`;
 
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as Streams[];
+    return result as OverlayStyles[];
 }
 
 // list (all)
-export const list = async(): Promise<Streams[]> => {
+export const list = async(): Promise<OverlayStyles[]> => {
     const query = `SELECT * FROM ${table}`;
 
     const db = new DB();
     const result = await db.executeQueryForResults(query);
 
-    return result as Streams[];
+    return result as OverlayStyles[];
 }
 
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     // filter
-    const fillableColumns = ['title', 'description', 'thumbnail', 'start_at', 'end_at', 'status'];
-
+    const fillableColumns = [ 'font_type', 'font_size', 'font_color', 'bg_color', 'bg_image', 'bar_empty_color', 'bar_filled_color', 'position' ];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 
-    const query = `UPDATE ${table} SET ${params} WHERE deleted_at IS NULL AND id = ${id}`;
+    const query = `UPDATE ${table} SET ${params} WHERE id = ${id}`;
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
 }
 
-// delete (soft delete)
-export const remove = async(id: number) => {
-    const query = `UPDATE ${table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = ${id}`;
+// delete (soft delete?)
+// export const delete = async(id: number) => {
+//     const query = `DELETE FROM ${table} WHERE id = ${id}`;
 
-    const db = new DB();
-    await db.executeQuery(query);
-}
+//     const db = new DB();
+//     await db.executeQueryForSingleResult(query);
+
+//     return result;
+// }

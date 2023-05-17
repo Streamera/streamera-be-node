@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as controller from '../Payments/index';
+import * as controller from '../QR/index';
 import _ from 'lodash';
 import { convertBigIntToString } from '../../utils';
 
@@ -28,7 +28,7 @@ routes.post('/', async(req, res) => {
     let data = req.body;
     const result = await controller.create(data);
 
-    return res.json({ success: true, data: convertBigIntToString(result) });
+    return res.json({ success: true, data: result });
 });
 
 // update

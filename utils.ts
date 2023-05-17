@@ -239,9 +239,9 @@ export const formatDBParamsToStr = (params : {
 }
 
 export const getAssetUrl = (url : string) => {
-    return `${
+    return `http://${
         process.env.DOMAIN
-    }/${url}`;
+    }/assets/${url}`;
 }
 
 export const convertBigIntToString = (obj : any) => {
