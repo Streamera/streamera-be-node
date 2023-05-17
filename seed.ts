@@ -9,6 +9,7 @@ import * as QR from './src/QR';
 import * as Trigger from './src/Triggers';
 import * as Announcement from './src/Announcements';
 import * as Milestone from './src/Milestones';
+import * as Poll from './src/Polls';
 import { Query } from 'pg';
 
 (async() => {
@@ -135,6 +136,27 @@ import { Query } from 'pg';
         "bar_empty_color":"",
         "bar_filled_color":"",
         "position":"middle-center"
+    });
+
+    await Poll.create({
+        "user_id": 1,
+        "stream_id": 1,
+        "title": "Big or small?",
+        "start_at": "2023-05-18 00:00:00",
+        "end_at": "2023-12-18 00:00:00",
+        "font_type":"serif",
+        "font_size":"14",
+        "font_color":"#000000",
+        "bg_color":"",
+        "bg_image":"",
+        "bar_empty_color":"",
+        "bar_filled_color":"",
+        "position":"middle-center",
+        "options": [
+            {"option": "Big"},
+            {"option": "Small"},
+            {"option": "Zero"}
+        ]
     });
 
     console.log('Seed ended, press CTRL / CMD + C');

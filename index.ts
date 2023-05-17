@@ -13,6 +13,7 @@ import { routes as triggerRoutes } from './src/Routes/triggers';
 import { routes as announcementRoutes } from './src/Routes/announcements';
 import { routes as leaderboardRoutes } from './src/Routes/leaderboards';
 import { routes as milestoneRoutes } from './src/Routes/milestones';
+import { routes as pollRoutes } from './src/Routes/polls';
 dotenv.config({ path: path.join(__dirname, '.env')});
 
 process.on('uncaughtException', function (err) {
@@ -41,6 +42,7 @@ app.use('/trigger', triggerRoutes);
 app.use('/announcement', announcementRoutes);
 app.use('/leaderboard', leaderboardRoutes);
 app.use('/milestone', milestoneRoutes);
+app.use('/poll', pollRoutes);
 
 // serve assets like images / video / etc
 app.use('/assets', express.static('public/content'));

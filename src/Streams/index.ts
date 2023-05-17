@@ -9,7 +9,7 @@ const table = 'streams';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'id', 'title', 'description', 'thumbnail', 'start_at', 'end_at', 'status' ];
+    const fillableColumns = [ 'id', 'user_id', 'title', 'description', 'thumbnail', 'start_at', 'end_at', 'status' ];
 
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);

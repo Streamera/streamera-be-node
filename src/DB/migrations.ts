@@ -328,7 +328,7 @@ export default [
                 style_id int not null default 0,
                 start_at timestamp,
                 end_at timestamp,
-                timeframe poll_timeframe not null default 'once',
+                timeframe poll_timeframe not null default 'weekly',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp,
                 deleted_at timestamp
