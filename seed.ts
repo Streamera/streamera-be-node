@@ -62,18 +62,6 @@ import { Query } from 'pg';
         "status": "scheduled"
     });
 
-    await QR.create({
-        "user_id": 1,
-        "font_type": "",
-        "font_size": "",
-        "font_color": "",
-        "bg_color": "",
-        "bg_image": "",
-        "bar_empty_color": "",
-        "bar_filled_color": "",
-        "position": "middle-center"
-    });
-
     await Trigger.create({
         "user_id": 1,
         "font_type":"serif",
@@ -88,76 +76,70 @@ import { Query } from 'pg';
         "type":"alltime"
     });
 
-    await Announcement.create({
-        "user_id":1,
-        "content": "lai liao lai liao",
-        "speed": 500,
-        "start_at": "2023-05-17 00:00:00",
-        "end_at": "2023-12-23 00:00:00",
-        "font_type":"serif",
-        "font_size":"14",
-        "font_color":"#000000",
-        "bg_color":"",
-        "bg_image":"",
-        "bar_empty_color":"",
-        "bar_filled_color":"",
-        "position":"middle-center",
-        "status":"active",
-        "type":"alltime"
-    });
+    // await QR.create({
+    //     "user_id": 1,
+    //     "font_type": "",
+    //     "font_size": "",
+    //     "font_color": "",
+    //     "bg_color": "",
+    //     "bg_image": "",
+    //     "bar_empty_color": "",
+    //     "bar_filled_color": "",
+    //     "position": "middle-center"
+    // });
 
-    await Announcement.create({
-        "user_id": 1,
-        "title": "Big Bang Board",
-        "status": 'active',
-        "timeframe": 'daily',
-        "font_type":"serif",
-        "font_size":"14",
-        "font_color":"#000000",
-        "bg_color":"",
-        "bg_image":"",
-        "bar_empty_color":"",
-        "bar_filled_color":"",
-        "position":"middle-center"
-    });
+    // await Announcement.create({
+    //     "user_id": 1,
+    //     "title": "Big Bang Board",
+    //     "status": 'active',
+    //     "timeframe": 'daily',
+    //     "font_type":"serif",
+    //     "font_size":"14",
+    //     "font_color":"#000000",
+    //     "bg_color":"",
+    //     "bg_image":"",
+    //     "bar_empty_color":"",
+    //     "bar_filled_color":"",
+    //     "position":"middle-center"
+    // });
 
-    await Milestone.create({
-        "user_id": 1,
-        "title": "Big Bang Board",
-        "target": "10000.00",
-        "start_at": null,
-        "end_at": null,
-        "timeframe": "daily",
-        "font_type":"serif",
-        "font_size":"14",
-        "font_color":"#000000",
-        "bg_color":"",
-        "bg_image":"",
-        "bar_empty_color":"",
-        "bar_filled_color":"",
-        "position":"middle-center"
-    });
+    // await Milestone.create({
+    //     "user_id": 1,
+    //     "title": "Big Bang Board",
+    //     "target": "10000.00",
+    //     "start_at": null,
+    //     "end_at": null,
+    //     "timeframe": "daily",
+    //     "font_type":"serif",
+    //     "font_size":"14",
+    //     "font_color":"#000000",
+    //     "bg_color":"",
+    //     "bg_image":"",
+    //     "bar_empty_color":"",
+    //     "bar_filled_color":"",
+    //     "position":"middle-center"
+    // });
 
-    await Poll.create({
-        "user_id": 1,
-        "stream_id": 1,
-        "title": "Big or small?",
-        "start_at": "2023-05-18 00:00:00",
-        "end_at": "2023-12-18 00:00:00",
-        "font_type":"serif",
-        "font_size":"14",
-        "font_color":"#000000",
-        "bg_color":"",
-        "bg_image":"",
-        "bar_empty_color":"",
-        "bar_filled_color":"",
-        "position":"middle-center",
-        "options": [
-            {"option": "Big"},
-            {"option": "Small"},
-            {"option": "Zero"}
-        ]
-    });
+    // await Poll.create({
+    //     "user_id": 1,
+    //     "title": "Big or small?",
+    //     "status": "active",
+    //     "start_at": "2023-05-18 00:00:00",
+    //     "end_at": "2023-12-18 00:00:00",
+    //     "font_type":"serif",
+    //     "font_size":"14",
+    //     "font_color":"#000000",
+    //     "bg_color":"",
+    //     "bg_image":"",
+    //     "bar_empty_color":"",
+    //     "bar_filled_color":"",
+    //     "position":"middle-center",
+    //     "options": [
+    //         {"option": "Big"},
+    //         {"option": "Small"},
+    //         {"option": "Zero"}
+    //     ]
+    // });
 
     console.log('Seed ended, press CTRL / CMD + C');
     return;

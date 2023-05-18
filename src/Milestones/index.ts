@@ -3,10 +3,27 @@ import {
     formatDBParamsToStr, getAssetUrl,
 } from '../../utils';
 import _ from "lodash";
+import dayjs from "dayjs";
 import { Milestone } from "./types";
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_milestones';
+
+// init entry for user
+export const init = async(user_id: number) => {
+    const defaultStyle = { font_type: '', font_size: '', font_color: '', bg_color: '', bg_image: '', bar_empty_color: '', bar_filled_color: '', position: 'middle-center', };
+
+    return await create({
+        user_id: user_id,
+        title: '',
+        target: '1000.00',
+        start_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        end_at: dayjs().add(99, 'years').format('YYYY-MM-DD HH:mm:ss'),
+        status: "inactive",
+        timeframe: 'weekly',
+        ...defaultStyle
+    });
+}
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {

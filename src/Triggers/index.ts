@@ -9,6 +9,20 @@ import * as StylesController from '../OverlayStyles/index';
 const table = 'stream_triggers';
 const ignoreSoftDeleted = 'deleted_at IS NULL';
 
+
+// init entry for user
+export const init = async(user_id: number) => {
+    const defaultStyle = { font_type: '', font_size: '', font_color: '', bg_color: '', bg_image: '', bar_empty_color: '', bar_filled_color: '', position: 'middle-center', };
+
+    return await create({
+        user_id: user_id,
+        content: '',
+        status: 'inactive',
+        type: 'alltime',
+        ...defaultStyle
+    });
+}
+
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();

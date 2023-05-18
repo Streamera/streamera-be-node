@@ -15,6 +15,7 @@ import { routes as leaderboardRoutes } from './src/Routes/leaderboards';
 import { routes as milestoneRoutes } from './src/Routes/milestones';
 import { routes as pollRoutes } from './src/Routes/polls';
 dotenv.config({ path: path.join(__dirname, '.env')});
+import { instrument } from '@socket.io/admin-ui';
 
 process.on('uncaughtException', function (err) {
     //dont stop on uncaught exception
@@ -49,12 +50,20 @@ app.use('/assets', express.static('public/content'));
 
 //connect app to websocket
 let http = createServer(app);
-/* let io = new Server(http, {
+let io = new Server(http, {
     cors: {
         origin: whitelists,
         credentials: true
     }
-}); */
+});
+
+instrument(io, {
+    auth: {
+      type: "basic",
+      username: "admin",
+      password: "$2b$10$heqvAkYMez.Va6Et2uXInOnkCT6/uQj1brkrbyG3LpopDklcq7ZOS" // "changeit" encrypted with bcrypt
+    },
+});
 
 //websocket functions
 /* io.on('connection', (socket: Socket) => {

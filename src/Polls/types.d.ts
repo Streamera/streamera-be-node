@@ -1,4 +1,5 @@
 import OverlayPosition from '../OverlayStyles/types';
+export type PollStatus = 'active' | 'inactive';
 
 export type Poll = {
     id?: number;
@@ -6,6 +7,7 @@ export type Poll = {
     title: string;
     start_at: string;
     end_at: string;
+    status: PollStatus;
     style_id: number;
     created_at?: string;
     updated_at?: string;

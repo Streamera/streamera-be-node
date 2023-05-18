@@ -76,13 +76,20 @@ export default [
         rollback_query: `DROP TABLE user_donation_setting;`
     },
     {
-        name: "create_user_donation_setting_idx",
+        name: "create_user_donation_setting_table_idx",
         query: `
             CREATE TRIGGER update_user_donation_setting_updated_at BEFORE UPDATE ON user_donation_setting FOR EACH ROW EXECUTE PROCEDURE update_at_column();
-            CREATE INDEX user_donation_setting_user_id_idx ON user_donation_setting (user_id);
             `,
         rollback_query: `
             DROP TRIGGER update_user_donation_setting_updated_at;
+            `
+    },
+    {
+        name: "create_user_donation_setting_unique_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY user_donation_setting_user_id_idx ON user_donation_setting (user_id);
+            `,
+        rollback_query: `
             DROP INDEX user_donation_setting_user_id_idx;
             `
     },
@@ -241,13 +248,15 @@ export default [
     {
         name: "create_stream_polls_table",
         query: `
+            CREATE TYPE poll_status AS ENUM ('active', 'inactive');
+
             CREATE TABLE stream_polls (
                 id bigserial PRIMARY KEY,
                 user_id int not null,
-                stream_id int not null,
                 title text not null default '',
                 start_at timestamp,
                 end_at timestamp,
+                status poll_status default 'inactive',
                 style_id int not null default 0,
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
@@ -260,11 +269,17 @@ export default [
         name: "create_stream_polls_idx",
         query: `
             CREATE TRIGGER update_stream_polls_updated_at BEFORE UPDATE ON stream_polls FOR EACH ROW EXECUTE PROCEDURE update_at_column();
-            CREATE INDEX stream_polls_stream_id_idx ON stream_polls (stream_id);
-            CREATE INDEX stream_polls_user_id_idx ON stream_polls (user_id);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_polls_updated_at;
+        `
+    },
+    {
+        name: "create_stream_polls_unique_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY stream_polls_user_id_idx ON stream_polls (user_id);
+            `,
+        rollback_query: `
             DROP INDEX stream_polls_user_id_idx;
         `
     },
@@ -294,31 +309,32 @@ export default [
             DROP INDEX stream_poll_options_poll_id_idx;
         `
     },
-    {
-        name: "create_stream_poll_payments_table",
-        query: `
-            CREATE TABLE stream_poll_payments (
-                poll_id int not null,
-                option_id bigint not null,
-                payment_id bigint not null
-            );`,
-        rollback_query: `
-            DROP TABLE stream_poll_payments;
-        `
-    },
-    {
-        name: "create_stream_poll_payments_table_idx",
-        query: `
-            CREATE INDEX stream_poll_payments_poll_id_option_id_idx ON stream_poll_payments (poll_id, option_id);
-            `,
-        rollback_query: `
-            DROP INDEX stream_poll_payments_poll_id_option_id_idx;
-        `
-    },
+    // {
+    //     name: "create_stream_poll_payments_table",
+    //     query: `
+    //         CREATE TABLE stream_poll_payments (
+    //             poll_id int not null,
+    //             option_id bigint not null,
+    //             payment_id bigint not null
+    //         );`,
+    //     rollback_query: `
+    //         DROP TABLE stream_poll_payments;
+    //     `
+    // },
+    // {
+    //     name: "create_stream_poll_payments_table_idx",
+    //     query: `
+    //         CREATE INDEX stream_poll_payments_poll_id_option_id_idx ON stream_poll_payments (poll_id, option_id);
+    //         `,
+    //     rollback_query: `
+    //         DROP INDEX stream_poll_payments_poll_id_option_id_idx;
+    //     `
+    // },
     {
         name: "create_stream_milestone_table",
         query: `
-            CREATE TYPE poll_timeframe AS ENUM ('monthly', 'weekly', 'daily');
+            CREATE TYPE milestone_timeframe AS ENUM ('monthly', 'weekly', 'daily');
+            CREATE TYPE milestone_status AS ENUM ('active', 'inactive');
 
             CREATE TABLE stream_milestones (
                 id bigserial PRIMARY KEY,
@@ -328,7 +344,8 @@ export default [
                 style_id int not null default 0,
                 start_at timestamp,
                 end_at timestamp,
-                timeframe poll_timeframe not null default 'weekly',
+                status milestone_status default 'inactive',
+                timeframe milestone_timeframe not null default 'weekly',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp,
                 deleted_at timestamp
@@ -348,26 +365,26 @@ export default [
             DROP INDEX stream_milestone_user_id_idx;
         `
     },
-    {
-        name: "create_stream_milestone_payment_table",
-        query: `
-            CREATE TABLE stream_milestone_payments (
-                milestone_id bigint not null,
-                payment_id bigint not null
-            );`,
-        rollback_query: `
-            DROP TABLE stream_milestone;
-        `
-    },
-    {
-        name: "create_stream_milestone_payments_table_idx",
-        query: `
-            CREATE INDEX stream_milestone_payments_milestone_id_idx ON stream_milestone_payments (milestone_id);
-            `,
-        rollback_query: `
-            DROP INDEX stream_milestone_payments_milestone_id_idx;
-        `
-    },
+    // {
+    //     name: "create_stream_milestone_payment_table",
+    //     query: `
+    //         CREATE TABLE stream_milestone_payments (
+    //             milestone_id bigint not null,
+    //             payment_id bigint not null
+    //         );`,
+    //     rollback_query: `
+    //         DROP TABLE stream_milestone;
+    //     `
+    // },
+    // {
+    //     name: "create_stream_milestone_payments_table_idx",
+    //     query: `
+    //         CREATE INDEX stream_milestone_payments_milestone_id_idx ON stream_milestone_payments (milestone_id);
+    //         `,
+    //     rollback_query: `
+    //         DROP INDEX stream_milestone_payments_milestone_id_idx;
+    //     `
+    // },
     {
         name: "create_stream_leaderboard_table",
         query: `
@@ -479,13 +496,20 @@ export default [
         name: "create_stream_announcements_table_idx",
         query: `
             CREATE TRIGGER update_stream_announcements_updated_at BEFORE UPDATE ON stream_announcements FOR EACH ROW EXECUTE PROCEDURE update_at_column();
-            CREATE INDEX stream_announcements_user_id_idx ON stream_announcements (user_id);
             CREATE INDEX stream_announcements_status_idx ON stream_announcements (status);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_announcements_updated_at;
-            DROP INDEX stream_announcements_user_id_idx;
             DROP INDEX stream_announcements_status_idx;
+        `
+    },
+    {
+        name: "create_stream_announcements_unique_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY stream_announcements_user_id_idx ON stream_announcements (user_id);
+            `,
+        rollback_query: `
+            DROP INDEX stream_announcements_user_id_idx;
         `
     },
     {

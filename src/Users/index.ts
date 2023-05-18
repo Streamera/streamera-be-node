@@ -8,23 +8,43 @@ import {
 import _ from "lodash";
 import { User } from "./types";
 
+import * as announcementController from '../Announcements/index';
+import * as donationSettingController from '../DonationSetting/index';
+import * as qrController from '../QR/index';
+import * as pollController from '../Polls/index';
+import * as milestoneController from '../Milestones/index';
+import * as leaderboardController from '../Leaderboards/index';
+import * as triggerController from '../Triggers/index';
+
 const table = 'users';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();
 
+    // insert user
     const fillableColumns = [ 'name', 'wallet', 'signature', 'profile_picture' ];
-
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);
-
-    // put quote
     const insertColumns = Object.keys(filtered);
 
     const query = `INSERT INTO ${table} (${_.join(insertColumns, ', ')}) VALUES (${params}) RETURNING id`;
-
     const result = await db.executeQueryForSingleResult(query);
+
+    // init announcement
+    await announcementController.init(result.id);
+    // init user_donation_setting
+    await donationSettingController.init(result.id);
+    // init qr
+    await qrController.init(result.id);
+    // init polls
+    await pollController.init(result.id);
+    // init milestone
+    await milestoneController.init(result.id);
+    // init leaderboard
+    await leaderboardController.init(result.id);
+    // init trigger?? (1)
+    await triggerController.init(result.id);
 
     return result;
 }
@@ -51,12 +71,14 @@ export const view = async(id: number): Promise<User> => {
     const socialQuery = `SELECT user_id, type, url FROM user_social_media WHERE user_id IN (${result.id})`;
     const socialResult =  await db.executeQueryForResults(socialQuery);
 
+    // set social media into user's property
     const socialMedia: {[key: string]: any}  = {};
     const curr = _.filter(socialResult, {user_id: result.id})
     _.map(curr, (s) => {
         socialMedia[s.type] = s.url
     });
 
+    // set profile pic url
     result.profile_picture = result.profile_picture ? getAssetUrl(result.profile_picture) : null;
     result.social = socialMedia;
 
@@ -90,6 +112,8 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
     // user's social media table
     const userIds = _.map(result, (r) => r.id);
     const socialQuery = `SELECT user_id, type, url FROM user_social_media WHERE user_id IN (${_.join(userIds, ', ')})`;
+
+    // set social media into user's property
     const socialResult =  await db.executeQueryForResults(socialQuery);
     _.map(result, (r, k) => {
         const socialMedia: {[key: string]: any}  = {};
@@ -98,6 +122,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
             socialMedia[s.type] = s.url
         });
 
+        // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
     });
@@ -167,6 +192,7 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     // user's donation setting table
     const donationFillableColumns = ['to_chain', 'to_token_symbol', 'to_token_address'];
     const donationParams = _.pick(updateParams, donationFillableColumns);
+
     // upsert hack
     let donationUpdateValue: {[key: string]: any} = {};
     _.map(donationParams, (value, key) => {

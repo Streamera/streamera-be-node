@@ -4,18 +4,34 @@ import {
     formatDBParamsToStr,
 } from '../../utils';
 import _ from "lodash";
+import dayjs from "dayjs";
 import { Poll } from "./types";
 import * as PollOptionsController from '../PollOptions/index';
 import { PollOption } from "../PollOptions/types";
 
 const table = 'stream_polls';
 
+// init entry for user
+export const init = async(user_id: number) => {
+    const defaultStyle = { font_type: '', font_size: '', font_color: '', bg_color: '', bg_image: '', bar_empty_color: '', bar_filled_color: '', position: 'middle-center', };
+
+    return await create({
+        user_id: user_id,
+        title: '',
+        start_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
+        end_at: dayjs().add(99, 'years').format('YYYY-MM-DD HH:mm:ss'),
+        status: "inactive",
+        options: [],
+        ...defaultStyle
+    });
+}
+
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();
 
     // get Poll insert field
-    const fillableColumns = [ 'user_id', 'stream_id', 'title', 'style_id', 'start_at', 'end_at' ];
+    const fillableColumns = [ 'user_id', 'status', 'stream_id', 'title', 'style_id', 'start_at', 'end_at' ];
     const filtered = _.pick(insertParams, fillableColumns);
 
     const params = formatDBParamsToStr(filtered, ', ', true);
@@ -110,7 +126,7 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     }));
 
     // filter
-    const fillableColumns = ['title', 'start_at', 'end_at'];
+    const fillableColumns = ['title', 'status', 'start_at', 'end_at'];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 
