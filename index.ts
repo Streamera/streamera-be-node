@@ -16,6 +16,7 @@ import { routes as milestoneRoutes } from './src/Routes/milestones';
 import { routes as pollRoutes } from './src/Routes/polls';
 dotenv.config({ path: path.join(__dirname, '.env')});
 import { instrument } from '@socket.io/admin-ui';
+import { Studio } from './src/Studio';
 
 process.on('uncaughtException', function (err) {
     //dont stop on uncaught exception
@@ -55,6 +56,34 @@ let io = new Server(http, {
         origin: whitelists,
         credentials: true
     }
+});
+
+//websocket functions
+io.on('connection', (socket: Socket) => {
+    console.log(`A client connected`);
+
+    let studio: Studio | null = null;
+    let onPromptDelete = () => {
+        studio = null;
+        // console.log('room destroyed');
+    };
+
+    socket.on('start_studio', async({ address }) => {
+        console.log(`${address} connected`);
+        if( !address ) {
+            socket.emit("invalid login");
+            return;
+        }
+
+        try {
+            studio = new Studio({io, socket, address, onPromptDelete});
+            await studio.init();
+            await studio.start();
+        } catch (e){
+            // do nothing
+        }
+    });
+
 });
 
 instrument(io, {
