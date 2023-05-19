@@ -171,10 +171,16 @@ export const list = async(): Promise<User[]> => {
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const db = new DB();
 
+    let users = await find({ id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized");
+    }
+
     // user table
-    const userFillableColumns = ['name', 'signature', 'profile_picture'];
+    const userFillableColumns = ['name' /* ,'signature' */, 'display_name', 'profile_picture'];
     const userParams = formatDBParamsToStr(_.pick(updateParams, userFillableColumns), ', ');
     const userQuery = `UPDATE ${table} SET ${userParams} WHERE id = ${id} AND status = 'active'`;
+
     // only execute when value is not empty
     if (userParams) {
         await db.executeQueryForSingleResult(userQuery);

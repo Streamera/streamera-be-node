@@ -38,6 +38,7 @@ export default [
             CREATE TABLE users (
                 id serial PRIMARY KEY,
                 name text not null default '',
+                display_name text not null default '',
                 wallet text not null,
                 signature text not null default '',
                 profile_picture text not null default '',
@@ -67,7 +68,7 @@ export default [
             CREATE TABLE user_donation_setting (
                 id serial PRIMARY KEY,
                 user_id int not null,
-                to_chain int default 0,
+                to_chain text default 0,
                 to_token_symbol text not null default '',
                 to_token_address text not null default '',
                 created_at timestamp default current_timestamp,
