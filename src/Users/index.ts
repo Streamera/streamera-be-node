@@ -125,6 +125,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
         // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
+        result![k] = _.omit(result![k], ['signature']);
     });
 
     return result as User[] ?? [];

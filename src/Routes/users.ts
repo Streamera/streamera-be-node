@@ -25,9 +25,15 @@ routes.post('/find', async (req, res) => {
 // create
 routes.post('/', async(req, res) => {
     let data = req.body;
-    const result = await controller.create(data);
+    try {
+        const result = await controller.create(data);
+        return res.json({ success: true, data: result });
+    }
 
-    return res.json({ success: true, data: result });
+    catch {
+        return res.status(500).send({ success: false, message: "die die die" });
+    }
+
 });
 
 // update
