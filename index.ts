@@ -58,6 +58,8 @@ let io = new Server(http, {
     }
 });
 
+export { io }; // Export the io instance
+
 //websocket functions
 io.on('connection', (socket: Socket) => {
     console.log(`A client connected`);
@@ -78,7 +80,6 @@ io.on('connection', (socket: Socket) => {
         try {
             studio = new Studio({io, socket, address, onPromptDelete});
             await studio.init();
-            await studio.start();
         } catch (e){
             // do nothing
         }
@@ -87,11 +88,12 @@ io.on('connection', (socket: Socket) => {
 });
 
 instrument(io, {
-    auth: {
-      type: "basic",
-      username: "admin",
-      password: "$2b$10$heqvAkYMez.Va6Et2uXInOnkCT6/uQj1brkrbyG3LpopDklcq7ZOS" // "changeit" encrypted with bcrypt
-    },
+    auth: false
+    // {
+    //   type: "basic",
+    //   username: "admin",
+    //   password: "$2b$10$heqvAkYMez.Va6Et2uXInOnkCT6/uQj1brkrbyG3LpopDklcq7ZOS" // "changeit" encrypted with bcrypt
+    // },
 });
 
 //websocket functions

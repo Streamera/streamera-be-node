@@ -6,7 +6,8 @@ import * as milestoneController from '../Milestones/index';
 import * as pollController from '../Polls/index';
 import * as qrController from '../QR/index';
 import * as announcementController from '../Announcements/index';
-
+import _ from 'lodash';
+import { convertBigIntToString } from "../../utils";
 export class Studio {
     io: Server;
     client: Socket;
@@ -26,33 +27,26 @@ export class Studio {
 
     init = async() => {
         const user = await userController.find({ wallet: this.address });
+
         // valid user
-        if (user.length > 0) {
+        if (user.length == 0) {
+            throw Error("Invalid users");
+        } else {
             this.user = user[0].id!;
             await this.client.join(this.room);
 
-            // // Listen for the disconnect event
-            // this.client.on('disconnect', () => {
-            //     // Remove the socket from the room
-            //     console.log(`${this.address} dced`);
-            //     this.client.leave(this.room);
-            //     this.onPromptDelete();
-            // });
+            // IMPORTANT: time spent 6hr+
+            // must convert bigint to string, else JSON.stringify will have issue
+            // socket also can't send the data
+            const data = convertBigIntToString({
+                leaderboard: await leaderboardController.find({ user_id: this.user }),
+                milestone: await milestoneController.find({ user_id: this.user }),
+                poll: await pollController.find({ user_id: this.user }),
+                qr: await qrController.find({ user_id: this.user }),
+                announcement: await announcementController.find({ user_id: this.user }),
+            });
+
+            this.io.to(this.room).emit('update', data);
         }
-    }
-
-    start = async() => {
-        const data = {
-            leaderboard: await leaderboardController.find({ user_id: this.user }),
-            milestone: await milestoneController.find({ user_id: this.user }),
-            poll: await pollController.find({ user_id: this.user }),
-            qr: await qrController.find({ user_id: this.user }),
-            announcement: await announcementController.find({ user_id: this.user }),
-        };
-
-
-        const res = this.io.to(this.room).emit('init', JSON.stringify(data));
-        console.log(`res: ${res}`);
-        // this.client.emit('test', 'hello');
     }
 }
