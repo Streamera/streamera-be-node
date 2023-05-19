@@ -1,7 +1,9 @@
 import { Router } from 'express';
 import * as controller from '../QR/index';
 import _ from 'lodash';
-import { convertBigIntToString } from '../../utils';
+import { checkAllowedMime, convertBigIntToString } from '../../utils';
+import { contentUpload } from '../Upload';
+import fs from 'fs-extra';
 
 export const routes = Router();
 
@@ -33,9 +35,30 @@ routes.post('/', async(req, res) => {
 
 // update
 // have to use POST to update (because multer does not support PUT)
-routes.post('/update/:id', async(req, res) => {
+routes.post('/update/:id', contentUpload.single('qr_code'), async(req, res) => {
     let data = req.body;
-    await controller.update(parseInt(req.params.id), data);
+    const mime = req.file?.mimetype;
 
-    return res.json({ success: true });
+    // delete file if not in whitelist
+    if (mime && !checkAllowedMime(mime, ['image'])) {
+        await fs.remove(req.file?.path!);
+    }
+
+    // assign profile_picture params if valid
+    if (_.has(req, 'file')) {
+        data.qr = req.file?.filename;
+    }
+
+    try {
+        await controller.update(parseInt(req.params.id), data);
+        return res.json({ success: true });
+    }
+
+    catch(e: any) {
+        if(e.message === "Unauthorized") {
+            return res.status(401).send("Unauthorized");
+        }
+
+        return res.status(500);
+    }
 });
