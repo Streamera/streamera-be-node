@@ -41,8 +41,15 @@ routes.post('/update/:id', async(req, res) => {
 });
 
 // remove (id)
-routes.post('/remove/:id', async(req, res) => {
-    await controller.remove(parseInt(req.params.id));
+// routes.post('/remove/:id', async(req, res) => {
+//     await controller.remove(parseInt(req.params.id));
 
-    return res.json({ success: true });
+//     return res.json({ success: true });
+// });
+
+// remove (id)
+routes.post('/profit/:userId', async(req, res) => {
+    const result = await controller.profit(parseInt(req.params.userId));
+
+    return res.json({ success: true, data: result });
 });

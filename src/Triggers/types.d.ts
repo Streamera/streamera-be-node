@@ -4,7 +4,7 @@ export type TriggerStatus = 'active' | 'inactive';
 
 export type Trigger = {
     id?: number;
-    user_id: string;
+    user_id: number;
     style_id: number;
     content: string;
     type: TriggerType;

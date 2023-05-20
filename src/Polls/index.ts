@@ -6,8 +6,12 @@ import {
 import _ from "lodash";
 import dayjs from "dayjs";
 import { Poll } from "./types";
-import * as PollOptionsController from '../PollOptions/index';
+import { io } from '../../index';
 import { PollOption } from "../PollOptions/types";
+
+import * as UserController from '../Users/index';
+import * as PollOptionsController from '../PollOptions/index';
+import * as TriggerController from '../Triggers/index';
 
 const table = 'stream_polls';
 
@@ -134,6 +138,9 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    const poll = await view(id);
+    await updateIO(poll.user_id, id);
 }
 
 // delete (soft delete?)
@@ -142,4 +149,12 @@ export const remove = async(id: number) => {
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { poll: convertBigIntToString(topic) });
 }

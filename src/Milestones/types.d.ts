@@ -4,7 +4,7 @@ export type MilestoneTimeframe = 'monthly' | 'weekly' | 'daily';
 
 export type Milestone = {
     id?: number;
-    user_id: string;
+    user_id: number;
     title: string;
     target: string;
     style_id: number;

@@ -1,9 +1,12 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl,
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString
 } from '../../utils';
 import _ from "lodash";
+import { io } from '../../index';
+
 import { Trigger } from "./types";
+import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_triggers';
@@ -119,6 +122,8 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    await updateIO(qr.user_id, id);
 }
 
 // delete (soft delete?)
@@ -127,4 +132,12 @@ export const remove = async(id: number) => {
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { trigger: convertBigIntToString(topic) });
 }

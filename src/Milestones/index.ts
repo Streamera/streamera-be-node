@@ -1,11 +1,15 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl,
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString, getPeriod
 } from '../../utils';
 import _ from "lodash";
 import dayjs from "dayjs";
+import { io } from '../../index';
 import { Milestone } from "./types";
+
+import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
+import * as PaymentController from '../Payments/index';
 
 const table = 'stream_milestones';
 
@@ -119,12 +123,47 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    await updateIO(qr.user_id, id);
 }
 
 // delete (soft delete?)
-export const remove = async(id: number) => {
-    const query = `UPDATE ${table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = ${id}`;
+// export const remove = async(id: number) => {
+//     const query = `UPDATE ${table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = ${id}`;
 
-    const db = new DB();
-    await db.executeQueryForSingleResult(query);
+//     const db = new DB();
+//     await db.executeQueryForSingleResult(query);
+// }
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+    const amount = await profit(userId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { milestone: convertBigIntToString(topic), amount: amount });
+}
+
+// get profit
+export const profit = async(userId: number) => {
+    const milestone: Milestone[] | undefined = await find({ user_id: userId });
+
+    if (milestone.length === 0) {
+        return {};
+    }
+
+    // get milestone type
+    const { start, end } = getPeriod(milestone[0].timeframe);
+
+    const txns = await PaymentController.where([
+        { field: 'created_at', cond: '>=', value: start },
+        { field: 'created_at', cond: '<=', value: end }
+    ]);
+
+    return _.reduce(txns, (result, value, key) => {
+        // currently we add up amount from tx (pending, success)
+        // make changes here if we want to count (success) tx only
+        const amount = value.status === 'failed' ? 0 : Number(value.usd_worth);
+        return result + amount;
+    }, 0);
 }

@@ -1,11 +1,13 @@
 import DB from "../DB"
 import {
+    convertBigIntToString,
     formatDBParamsToStr,
     getAssetUrl,
     getInsertQuery,
     getUpsertQuery
 } from '../../utils';
 import _ from "lodash";
+import { io } from '../../index';
 import { User } from "./types";
 
 import * as announcementController from '../Announcements/index';
@@ -203,6 +205,15 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const donationQuery = getUpsertQuery('user_donation_setting', donationUpdateValue, donationInsertValue, donationSearchValue);
     await db.executeQuery(donationQuery);
+
+    await updateIO(id);
+}
+
+// update io
+export const updateIO = async(id: number) => {
+    const user = await view(id);
+
+    io.to(`studio_${user.wallet}`).emit('update', { user: convertBigIntToString(user) });
 }
 
 // delete (soft delete?)

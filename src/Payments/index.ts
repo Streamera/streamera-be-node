@@ -1,9 +1,13 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr,
+    formatDBParamsToStr, convertBigIntToString, customDBWhereParams
 } from '../../utils';
 import _ from "lodash";
+import { io } from '../../index';
 import { Payment } from "./types";
+
+import * as UserController from '../Users/index';
+import * as TriggerController from '../Triggers/index';
 
 const table = 'stream_payments';
 
@@ -22,7 +26,13 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
 
-    return result;
+    if (result) {
+        await updateIO(filtered.to_user, result.id);
+        return result;
+    } else {
+        return {};
+    }
+
 }
 
 // view (single - id)
@@ -68,6 +78,27 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     const db = new DB();
     await db.executeQueryForSingleResult(query);
 }
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+    const topic2 = await TriggerController.find({ user_id: userId });
+
+    io.to(`studio_${user.wallet}`).emit('update', { payment: convertBigIntToString(topic), trigger: convertBigIntToString(topic2?.[0]) });
+}
+
+// where (with condition)
+export const where = async(whereParams: { field: string, cond: string, value: any }[]): Promise<Payment[]> => {
+    const whereString = customDBWhereParams(whereParams);
+    const query = `SELECT * FROM ${table} WHERE ${whereString}`;
+
+    const db = new DB();
+    const result = await db.executeQueryForResults(query);
+
+    return result as Payment[] ?? [];
+}
+
 
 // delete (soft delete?)
 // export const delete = async(userId: number) => {

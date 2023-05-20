@@ -3,7 +3,7 @@ export type PollStatus = 'active' | 'inactive';
 
 export type Poll = {
     id?: number;
-    user_id: string;
+    user_id: number;
     title: string;
     start_at: string;
     end_at: string;

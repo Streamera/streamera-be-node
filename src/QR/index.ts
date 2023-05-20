@@ -1,6 +1,6 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl,
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString
 } from '../../utils';
 import _ from "lodash";
 import { QR } from "./types";
@@ -8,6 +8,8 @@ import QRCode from 'qrcode';
 import AppRoot from 'app-root-path';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
+import { io } from '../../index';
+
 import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
 
@@ -121,6 +123,16 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    await updateIO(qr.user_id, id);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { qr: convertBigIntToString(topic) });
 }
 
 // delete (soft delete?)

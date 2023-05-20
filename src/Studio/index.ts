@@ -4,6 +4,7 @@ import * as userController from '../Users/index';
 import * as leaderboardController from '../Leaderboards/index';
 import * as milestoneController from '../Milestones/index';
 import * as pollController from '../Polls/index';
+import * as pollOptionController from '../PollOptions/index';
 import * as qrController from '../QR/index';
 import * as announcementController from '../Announcements/index';
 import _ from 'lodash';
@@ -29,7 +30,7 @@ export class Studio {
         const user = await userController.find({ wallet: this.address });
 
         // valid user
-        if (user.length == 0) {
+        if (user.length === 0) {
             throw Error("Invalid users");
         } else {
             this.user = user[0].id!;
@@ -38,10 +39,12 @@ export class Studio {
             // IMPORTANT: time spent 6hr+
             // must convert bigint to string, else JSON.stringify will have issue
             // socket also can't send the data
-            const data = convertBigIntToString({
+
+            let data = convertBigIntToString({
                 leaderboard: await leaderboardController.find({ user_id: this.user }),
                 milestone: await milestoneController.find({ user_id: this.user }),
                 poll: await pollController.find({ user_id: this.user }),
+                pollOptions: [],
                 qr: await qrController.find({ user_id: this.user }),
                 announcement: await announcementController.find({ user_id: this.user }),
             });
