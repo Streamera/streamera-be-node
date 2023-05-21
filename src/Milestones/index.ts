@@ -19,7 +19,7 @@ export const init = async(user_id: number) => {
         title: '',
         target: '1000.00',
         start_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        end_at: dayjs().add(99, 'years').format('YYYY-MM-DD HH:mm:ss'),
+        end_at: dayjs().add(1, 'years').format('YYYY-MM-DD HH:mm:ss'),
         status: "inactive",
         timeframe: 'weekly',
         ...defaultStyle
