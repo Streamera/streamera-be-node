@@ -82,7 +82,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Milestone[
             const style = await StylesController.view(result![k].style_id);
 
             // merge
-            _.merge(result, style);
+            _.merge(result![k], style);
         })
     );
 

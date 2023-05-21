@@ -11,7 +11,7 @@ import { PollOption } from "../PollOptions/types";
 
 import * as UserController from '../Users/index';
 import * as PollOptionsController from '../PollOptions/index';
-import * as TriggerController from '../Triggers/index';
+import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_polls';
 
@@ -33,6 +33,10 @@ export const init = async(user_id: number) => {
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();
+
+    // insert style
+    const style = await StylesController.create(insertParams);
+    insertParams['style_id'] = style.id;
 
     // get Poll insert field
     const fillableColumns = [ 'user_id', 'status', 'stream_id', 'title', 'style_id', 'start_at', 'end_at' ];
@@ -80,6 +84,11 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Poll[]> =>
     await Promise.all(_.map(result, async(r, k) => {
         const options = await PollOptionsController.find({ poll_id: result![k].id });
         result![k].options = options;
+
+        const style = await StylesController.view(result![k].style_id);
+
+        // merge
+        _.merge(result![k], style);
     }));
 
     return result as Poll[] ?? [];

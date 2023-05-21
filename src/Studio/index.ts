@@ -44,11 +44,14 @@ export class Studio {
                 leaderboard: await leaderboardController.find({ user_id: this.user }),
                 milestone: await milestoneController.find({ user_id: this.user }),
                 poll: await pollController.find({ user_id: this.user }),
-                pollOptions: [],
                 qr: await qrController.find({ user_id: this.user }),
                 announcement: await announcementController.find({ user_id: this.user }),
             });
 
+            // only take the first result from each property
+            _.map(data, (props, table) => {
+                data[table] = props?.[0];
+            });
             this.io.to(this.room).emit('update', data);
         }
     }
