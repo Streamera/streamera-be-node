@@ -5,6 +5,7 @@ import {
 import _ from "lodash";
 import dayjs from "dayjs";
 import { Announcement } from "./types";
+import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_announcements';
@@ -77,7 +78,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Announceme
             const style = await StylesController.view(result![k].style_id);
 
             // merge
-            _.merge(result, style);
+            _.merge(result![k], style);
         })
     );
 
@@ -105,6 +106,11 @@ export const list = async(): Promise<Announcement[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
+
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
 
     // update style
     await StylesController.update(qr.style_id, updateParams);

@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import * as controller from '../Announcements/index';
+import * as controller from '../Webhooks/index';
 import _ from 'lodash';
 import { convertBigIntToString } from '../../utils';
 
@@ -26,7 +26,7 @@ routes.post('/find', async(req, res) => {
 // create
 routes.post('/', async(req, res) => {
     let data = req.body;
-    const result = await controller.create(data);
+    const result = convertBigIntToString(await controller.create(data));
 
     return res.json({ success: true, data: result });
 });
@@ -50,9 +50,19 @@ routes.post('/update/:id', async(req, res) => {
     }
 });
 
-// remove (id)
-routes.post('/remove/:id', async(req, res) => {
-    await controller.remove(parseInt(req.params.id));
+// update
+// have to use POST to update (because multer does not support PUT)
+routes.post('/test/:id', async(req, res) => {
+    try {
+        await controller.test(parseInt(req.params.id));
+        return res.json({ success: true });
+    }
 
-    return res.json({ success: true });
+    catch(e: any) {
+        if(e.message === "Missing webhook") {
+            return res.status(404).send("Missing webhook");
+        }
+
+        return res.status(500);
+    }
 });

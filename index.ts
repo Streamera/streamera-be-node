@@ -14,6 +14,7 @@ import { routes as announcementRoutes } from './src/Routes/announcements';
 import { routes as leaderboardRoutes } from './src/Routes/leaderboards';
 import { routes as milestoneRoutes } from './src/Routes/milestones';
 import { routes as pollRoutes } from './src/Routes/polls';
+import { routes as webhookRoutes } from './src/Routes/webhooks';
 dotenv.config({ path: path.join(__dirname, '.env')});
 import { instrument } from '@socket.io/admin-ui';
 
@@ -44,6 +45,7 @@ app.use('/announcement', announcementRoutes);
 app.use('/leaderboard', leaderboardRoutes);
 app.use('/milestone', milestoneRoutes);
 app.use('/poll', pollRoutes);
+app.use('/webhooks', webhookRoutes);
 
 // serve assets like images / video / etc
 app.use('/assets', express.static('public/content'));

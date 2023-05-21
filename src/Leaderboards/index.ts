@@ -4,6 +4,7 @@ import {
 } from '../../utils';
 import _ from "lodash";
 import { Leaderboard } from "./types";
+import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_leaderboards';
@@ -27,7 +28,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // insert style
     const style = await StylesController.create(insertParams);
-    console.log(style);
     insertParams['style_id'] = style.id;
 
     // get Leaderboard insert field
@@ -74,7 +74,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Leaderboar
             const style = await StylesController.view(result![k].style_id);
 
             // merge
-            _.merge(result, style);
+            _.merge(result![k], style);
         })
     );
 
@@ -102,6 +102,11 @@ export const list = async(): Promise<Leaderboard[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
+
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
 
     // update style
     await StylesController.update(qr.style_id, updateParams);

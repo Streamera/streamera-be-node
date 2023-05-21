@@ -25,9 +25,15 @@ routes.post('/find', async (req, res) => {
 // create
 routes.post('/', async(req, res) => {
     let data = req.body;
-    const result = await controller.create(data);
+    try {
+        const result = await controller.create(data);
+        return res.json({ success: true, data: result });
+    }
 
-    return res.json({ success: true, data: result });
+    catch {
+        return res.status(500).send({ success: false, message: "die die die" });
+    }
+
 });
 
 // update
@@ -46,7 +52,16 @@ routes.post('/update/:id', contentUpload.single('profile_picture'), async(req, r
         data.profile_picture = req.file?.filename;
     }
 
-    await controller.update(parseInt(req.params.id), data);
+    try {
+        await controller.update(parseInt(req.params.id), data);
+        return res.json({ success: true });
+    }
 
-    return res.json({ success: true });
+    catch(e: any) {
+        if(e.message === "Unauthorized") {
+            return res.status(401).send("Unauthorized");
+        }
+
+        return res.status(500);
+    }
 });

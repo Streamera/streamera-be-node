@@ -8,6 +8,8 @@ import dayjs from "dayjs";
 import { Poll } from "./types";
 import * as PollOptionsController from '../PollOptions/index';
 import { PollOption } from "../PollOptions/types";
+import * as UserController from '../Users/index';
+import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_polls';
 
@@ -30,8 +32,11 @@ export const init = async(user_id: number) => {
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();
 
+    const style = await StylesController.create(insertParams);
+    insertParams['style_id'] = style.id;
+
     // get Poll insert field
-    const fillableColumns = [ 'user_id', 'status', 'stream_id', 'title', 'style_id', 'start_at', 'end_at' ];
+    const fillableColumns = [ 'user_id', 'status', 'title', 'style_id', 'start_at', 'end_at' ];
     const filtered = _.pick(insertParams, fillableColumns);
 
     const params = formatDBParamsToStr(filtered, ', ', true);
@@ -76,6 +81,10 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Poll[]> =>
     await Promise.all(_.map(result, async(r, k) => {
         const options = await PollOptionsController.find({ poll_id: result![k].id });
         result![k].options = options;
+        const style = await StylesController.view(result![k].style_id);
+
+        // merge
+        _.merge(result![k], style);
     }));
 
     return result as Poll[] ?? [];
@@ -98,6 +107,13 @@ export const list = async(): Promise<Poll[]> => {
 
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
+    const qr = await view(id);
+
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
+
     // get inital options
     const prevOptions = await PollOptionsController.find({ poll_id: id });
     let prevOptionIds: any[] = [];
@@ -124,6 +140,8 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
             await PollOptionsController.remove(opt);
         }
     }));
+    // update style
+    await StylesController.update(qr.style_id, updateParams);
 
     // filter
     const fillableColumns = ['title', 'status', 'start_at', 'end_at'];
