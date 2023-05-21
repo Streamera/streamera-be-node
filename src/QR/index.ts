@@ -38,7 +38,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // insert style
     const style = await StylesController.create(insertParams);
-    console.log(style);
     insertParams['style_id'] = style.id;
 
     // get qr insert field

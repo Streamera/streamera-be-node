@@ -31,7 +31,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // insert style
     const style = await StylesController.create(insertParams);
-    console.log(style);
     insertParams['style_id'] = style.id;
 
     // get Milestone insert field
@@ -76,14 +75,12 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Milestone[
     await Promise.all(
         _.map(result, async(r, k) => {
             const style = await StylesController.view(result![k].style_id);
-            console.log(style)
 
             // merge
             _.merge(result![k], style);
         })
     );
 
-    console.log(result)
     return result as Milestone[] ?? [];
 }
 
