@@ -15,6 +15,7 @@ import * as pollController from '../Polls/index';
 import * as milestoneController from '../Milestones/index';
 import * as leaderboardController from '../Leaderboards/index';
 import * as triggerController from '../Triggers/index';
+import * as webhookController from '../Webhooks/index';
 
 const table = 'users';
 
@@ -45,6 +46,8 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     await leaderboardController.init(result.id);
     // init trigger?? (1)
     await triggerController.init(result.id);
+    // init webhooks
+    await webhookController.init(result.id);
 
     return result;
 }

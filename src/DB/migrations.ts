@@ -555,6 +555,7 @@ export default [
     {
         name: "create_stream_webhooks_table",
         query: `
+            CREATE TYPE webhook_status AS ENUM ('active', 'inactive');
             CREATE TYPE webhook_type AS ENUM ('discord', 'custom');
 
             CREATE TABLE stream_webhooks (
@@ -563,6 +564,7 @@ export default [
                 type webhook_type not null,
                 value text not null,
                 template text not null,
+                status webhook_status default 'inactive',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
             );`,
@@ -574,17 +576,19 @@ export default [
         name: "create_stream_webhooks_idx",
         query: `
             CREATE TRIGGER update_stream_webhooks_updated_at BEFORE UPDATE ON stream_webhooks FOR EACH ROW EXECUTE PROCEDURE update_at_column();
-            CREATE INDEX stream_webhooks_idx ON stream_webhooks (type);
+            CREATE INDEX stream_webhook_type_idx ON stream_webhooks (type);
+            CREATE INDEX stream_webhook_status_idx ON stream_webhooks (status);
             `,
         rollback_query: `
             DROP TRIGGER update_stream_webhooks_updated_at;
-            DROP INDEX stream_webhooks_idx;
+            DROP INDEX stream_webhook_type_idx;
+            DROP INDEX stream_webhook_status_idx;
         `
     },
     {
         name: "create_stream_webhooks_concurrently_idx",
         query: `
-            CREATE UNIQUE INDEX CONCURRENTLY stream_webhooks_user_id_idx ON stream_webhooks (user_id);
+            CREATE INDEX CONCURRENTLY stream_webhooks_user_id_idx ON stream_webhooks (user_id);
             `,
         rollback_query: `
             DROP INDEX stream_webhooks_user_id_idx;
