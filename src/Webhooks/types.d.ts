@@ -9,3 +9,8 @@ export type Webhook = {
     created_at: string;
     updated_at: string;
 }
+
+export type WebhookExecuteParams = {
+    donator: string;
+    amount: number;
+}

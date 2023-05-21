@@ -5,7 +5,8 @@ import {
 import _ from "lodash";
 import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
-import { Webhook } from "./types";
+import { Webhook, WebhookExecuteParams } from "./types";
+import axios from 'axios';
 
 const table = 'stream_webhooks';
 
@@ -108,6 +109,35 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     const db = new DB();
     await db.executeQueryForSingleResult(query);
 }
+
+// tests the webhook notification
+export const test = async(id: number): Promise<void> => {
+    let donator = 'Chad';
+    let amount = 99;
+    await execute(id, {
+        donator,
+        amount
+    });
+}
+
+export const execute = async(id: number, params: WebhookExecuteParams) => {
+    const webhook = await view(id);
+    if(!webhook) {
+        throw Error("Missing webhook");
+    }
+
+    if(!webhook.value) {
+        throw Error("Missing webhook");
+    }
+
+    let {
+        donator,
+        amount
+    } = params;
+
+    let message = webhook.template.replace(/{{donator}}/g, donator).replace(/{{amount}}/g, amount.toString());
+    await axios.post(webhook.value, { content: message });
+} 
 
 // delete (soft delete?)
 // export const delete = async(userId: number) => {

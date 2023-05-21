@@ -49,3 +49,20 @@ routes.post('/update/:id', async(req, res) => {
         return res.status(500);
     }
 });
+
+// update
+// have to use POST to update (because multer does not support PUT)
+routes.post('/test/:id', async(req, res) => {
+    try {
+        await controller.test(parseInt(req.params.id));
+        return res.json({ success: true });
+    }
+
+    catch(e: any) {
+        if(e.message === "Missing webhook") {
+            return res.status(404).send("Missing webhook");
+        }
+
+        return res.status(500);
+    }
+});
