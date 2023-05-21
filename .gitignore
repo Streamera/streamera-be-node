@@ -13,4 +13,5 @@ test.ts
 yarn.lock
 public/content/*
 
+// remove personal configs
 nodemon.json

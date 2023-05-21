@@ -8,6 +8,7 @@ import dayjs from "dayjs";
 import { Poll } from "./types";
 import * as PollOptionsController from '../PollOptions/index';
 import { PollOption } from "../PollOptions/types";
+import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_polls';
@@ -106,6 +107,13 @@ export const list = async(): Promise<Poll[]> => {
 
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
+    const qr = await view(id);
+
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
+
     // get inital options
     const prevOptions = await PollOptionsController.find({ poll_id: id });
     let prevOptionIds: any[] = [];
@@ -132,8 +140,6 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
             await PollOptionsController.remove(opt);
         }
     }));
-
-    const qr = await view(id);
     // update style
     await StylesController.update(qr.style_id, updateParams);
 

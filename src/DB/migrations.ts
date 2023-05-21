@@ -552,4 +552,42 @@ export default [
             DROP INDEX stream_qr_user_id_idx;
         `
     },
+    {
+        name: "create_stream_webhooks_table",
+        query: `
+            CREATE TYPE webhook_type AS ENUM ('discord', 'custom');
+
+            CREATE TABLE stream_webhooks (
+                id serial PRIMARY KEY,
+                user_id int not null,
+                type webhook_type not null,
+                value text not null,
+                template text not null,
+                created_at timestamp default current_timestamp,
+                updated_at timestamp
+            );`,
+        rollback_query: `
+            DROP TABLE stream_webhooks;
+        `
+    },
+    {
+        name: "create_stream_webhooks_idx",
+        query: `
+            CREATE TRIGGER update_stream_webhooks_updated_at BEFORE UPDATE ON stream_webhooks FOR EACH ROW EXECUTE PROCEDURE update_at_column();
+            CREATE INDEX stream_webhooks_idx ON stream_webhooks (type);
+            `,
+        rollback_query: `
+            DROP TRIGGER update_stream_webhooks_updated_at;
+            DROP INDEX stream_webhooks_idx;
+        `
+    },
+    {
+        name: "create_stream_webhooks_concurrently_idx",
+        query: `
+            CREATE UNIQUE INDEX CONCURRENTLY stream_webhooks_user_id_idx ON stream_webhooks (user_id);
+            `,
+        rollback_query: `
+            DROP INDEX stream_webhooks_user_id_idx;
+        `
+    },
 ];
