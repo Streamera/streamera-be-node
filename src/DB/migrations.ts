@@ -448,6 +448,7 @@ export default [
                 user_id int not null,
                 style_id int not null default 0,
                 content text not null default '',
+                caption text not null default '{{donator}}: {{amount}}',
                 type trigger_type default 'alltime',
                 status trigger_status default 'inactive',
                 created_at timestamp default current_timestamp,

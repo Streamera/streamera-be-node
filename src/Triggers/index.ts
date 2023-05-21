@@ -17,6 +17,7 @@ export const init = async(user_id: number) => {
     return await create({
         user_id: user_id,
         content: '',
+        caption: '{{donator}}: {{amount}}',
         status: 'inactive',
         type: 'alltime',
         ...defaultStyle
@@ -65,8 +66,8 @@ export const view = async(id: number): Promise<Trigger> => {
 
 // find (all match)
 export const find = async(whereParams: {[key: string]: any}): Promise<Trigger[]> => {
-    const params = formatDBParamsToStr(whereParams, ' AND ');
-    const query = `SELECT * FROM ${table} WHERE ${ignoreSoftDeleted} AND ${params}`;
+    const params = formatDBParamsToStr(whereParams, ' AND ', false, "a");
+    const query = `SELECT a.*, s.id as overlay_id, s.font_type, s.font_size, s.font_color, s.bg_color, s.bg_image, s.bar_empty_color, s.bar_filled_color, s.position FROM ${table} a JOIN overlay_styles s ON s.id = a.style_id  WHERE ${ignoreSoftDeleted} AND ${params}`;
 
     const db = new DB();
     const result: Trigger[] | undefined = await db.executeQueryForResults(query);
@@ -111,7 +112,7 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     await StylesController.update(qr.style_id, updateParams);
 
     // filter
-    const fillableColumns = ['content', 'status', 'type'];
+    const fillableColumns = ['content', 'caption', 'status', 'type'];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 
