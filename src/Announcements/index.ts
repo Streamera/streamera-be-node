@@ -66,8 +66,8 @@ export const view = async(id: number): Promise<Announcement> => {
 
 // find (all match)
 export const find = async(whereParams: {[key: string]: any}): Promise<Announcement[]> => {
-    const params = formatDBParamsToStr(whereParams, ' AND ');
-    const query = `SELECT * FROM ${table} WHERE ${ignoreSoftDeleted} AND ${params}`;
+    const params = formatDBParamsToStr(whereParams, ' AND ', false, "a");
+    const query = `SELECT a.*, s.id as overlay_id, s.font_type, s.font_size, s.font_color, s.bg_color, s.bg_image, s.bar_empty_color, s.bar_filled_color, s.position FROM ${table} a JOIN overlay_styles s ON s.id = a.style_id  WHERE ${ignoreSoftDeleted} AND ${params}`;
 
     const db = new DB();
     const result: Announcement[] | undefined = await db.executeQueryForResults(query);
