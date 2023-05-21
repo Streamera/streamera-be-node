@@ -12,3 +12,5 @@ test.ts
 *.log
 yarn.lock
 public/content/*
+
+nodemon.json
