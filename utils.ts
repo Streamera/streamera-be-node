@@ -232,15 +232,15 @@ export const isCurrentUserAdmin = async (discord_id : string) => {
  */
 export const formatDBParamsToStr = (params : {
     [key : string]: any
-}, separator : string = ', ', valueOnly : boolean = false) => {
+}, separator : string = ', ', valueOnly : boolean = false, prepend: string = "") => {
     let stringParams: string[] = [];
     _.map(params, (p, k) => {
         const value = typeof p === 'string' ? `'${p}'` : p;
 
         if (valueOnly) {
-            stringParams.push(`${value}`);
+            stringParams.push(`${prepend? prepend + "." : ""}${value}`);
         } else {
-            stringParams.push(`${k} = ${value}`);
+            stringParams.push(`${prepend? prepend + "." : ""}${k} = ${value}`);
         }
     })
 
