@@ -3,7 +3,7 @@ export type AnnouncementStatus = 'active' | 'inactive';
 
 export type Announcement = {
     id?: string;
-    user_id: string;
+    user_id: number;
     style_id: number;
     content: string;
     speed: string;

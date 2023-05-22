@@ -4,7 +4,7 @@ export type LeaderboardTimeframe = 'monthly' | 'weekly' | 'daily';
 
 export type Leaderboard = {
     id?: number;
-    user_id: string;
+    user_id: number;
     title: string;
     style_id: number;
     status: LeaderboardStatus;

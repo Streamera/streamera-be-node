@@ -1,12 +1,15 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl,
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString, getPeriod
 } from '../../utils';
 import _ from "lodash";
 import dayjs from "dayjs";
+import { io } from '../../index';
 import { Milestone } from "./types";
+
 import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
+import * as PaymentController from '../Payments/index';
 
 const table = 'stream_milestones';
 
@@ -56,9 +59,13 @@ export const view = async(id: number): Promise<Milestone> => {
     const result = await db.executeQueryForSingleResult(query);
 
     if (result) {
-        const style = await StylesController.view(result.style_id);
+        // get curr donated amount & milestone percentage
+        // const currAmount = await profit(result.user_id);
+        // result.profit = currAmount;
+        // result.curr_percent = Number(currAmount) === 0 || Number(result.target) === 0 ? 0 : Number(currAmount) / Number(result.target);
 
-        // merge
+        // merge style data
+        const style = await StylesController.view(result.style_id);
         _.merge(result, style);
     }
 
@@ -75,9 +82,13 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Milestone[
 
     await Promise.all(
         _.map(result, async(r, k) => {
-            const style = await StylesController.view(result![k].style_id);
+            // get curr donated amount & milestone percentage
+            // const currAmount = await profit(result![k].user_id);
+            // result![k].profit = currAmount;
+            // result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
 
-            // merge
+            // merge style data
+            const style = await StylesController.view(result![k].style_id);
             _.merge(result![k], style);
         })
     );
@@ -94,8 +105,13 @@ export const list = async(): Promise<Milestone[]> => {
 
     await Promise.all(
         _.map(result, async(r, k) => {
-            const style = await StylesController.view(result![k].style_id);
+            // get curr donated amount & milestone percentage
+            // const currAmount = await profit(result![k].user_id);
+            // result![k].profit = currAmount;
+            // result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
 
+            // merge style data
+            const style = await StylesController.view(result![k].style_id);
             _.merge(result![k], style);
         })
     );
@@ -124,12 +140,48 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    await updateIO(qr.user_id, id);
 }
 
 // delete (soft delete?)
-export const remove = async(id: number) => {
-    const query = `UPDATE ${table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = ${id}`;
+// export const remove = async(id: number) => {
+//     const query = `UPDATE ${table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = ${id}`;
 
-    const db = new DB();
-    await db.executeQueryForSingleResult(query);
+//     const db = new DB();
+//     await db.executeQueryForSingleResult(query);
+// }
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+    const amount = await profit(userId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { milestone: convertBigIntToString(topic), amount: amount });
+}
+
+// get profit
+export const profit = async(userId: number): Promise<string> => {
+    const milestone: Milestone[] | undefined = await find({ user_id: userId });
+
+    if (milestone.length === 0) {
+        return '0.00';
+    }
+
+    // get milestone type
+    const { start, end } = getPeriod(milestone[0].timeframe);
+
+    const txns = await PaymentController.where([
+        { field: 'created_at', cond: '>=', value: start },
+        { field: 'created_at', cond: '<=', value: end }
+    ]);
+
+    const amount = _.reduce(txns, (result, value, key) => {
+        // currently we add up amount from tx (pending, success)
+        // make changes here if we want to count (success) tx only
+        const amount = value.status === 'failed' ? 0 : Number(value.usd_worth);
+        return result + amount;
+    }, 0)
+    return amount.toFixed(2);
 }

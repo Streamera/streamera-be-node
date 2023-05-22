@@ -20,6 +20,7 @@ import { Query } from 'pg';
     });
 
     await User.update(1, {
+        "signature":"35367e8e7ccbb27acfec785ca4af6e12ae35d768",
         "name": "First revised",
         "twitch": "twitch.tv/first",
         "facebook": "fb.com/first",

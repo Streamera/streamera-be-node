@@ -6,9 +6,10 @@ import {
 import _ from "lodash";
 import dayjs from "dayjs";
 import { Poll } from "./types";
-import * as PollOptionsController from '../PollOptions/index';
+import { io } from '../../index';
 import { PollOption } from "../PollOptions/types";
 import * as UserController from '../Users/index';
+import * as PollOptionsController from '../PollOptions/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_polls';
@@ -32,6 +33,7 @@ export const init = async(user_id: number) => {
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
     const db = new DB();
 
+    // insert style
     const style = await StylesController.create(insertParams);
     insertParams['style_id'] = style.id;
 
@@ -65,6 +67,10 @@ export const view = async(id: number): Promise<Poll> => {
     if (result) {
         const options = await PollOptionsController.find({ poll_id: result.id });
         result.options = options;
+
+        const style = await StylesController.view(result.style_id);
+        // merge
+        _.merge(result, style);
     }
 
     return result ?? {};
@@ -108,6 +114,8 @@ export const list = async(): Promise<Poll[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
+    console.log(id);
+    console.log(qr);
 
     const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
     if(users.length === 0) {
@@ -152,6 +160,9 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    const poll = await view(id);
+    await updateIO(poll.user_id, id);
 }
 
 // delete (soft delete?)
@@ -160,4 +171,12 @@ export const remove = async(id: number) => {
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { poll: convertBigIntToString(topic) });
 }
