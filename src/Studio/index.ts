@@ -22,7 +22,7 @@ export class Studio {
         this.io = io;
         this.client = socket;
         this.room = `studio_${address.toLowerCase()}`;
-        this.address = address;
+        this.address = address.toLowerCase();
         this.onPromptDelete = onPromptDelete;
     }
 
@@ -39,7 +39,7 @@ export class Studio {
             // IMPORTANT: time spent 6hr+
             // must convert bigint to string, else JSON.stringify will have issue
             // socket also can't send the data
-
+            // console.log(await leaderboardController.find({ user_id: this.user }));
             let data = convertBigIntToString({
                 leaderboard: await leaderboardController.find({ user_id: this.user }),
                 milestone: await milestoneController.find({ user_id: this.user }),
@@ -48,6 +48,7 @@ export class Studio {
                 announcement: await announcementController.find({ user_id: this.user }),
                 trigger: await triggerController.find({ user_id: this.user })
             });
+
 
             // only take the first result from each property
             _.map(data, (props, table) => {
