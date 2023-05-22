@@ -22,5 +22,5 @@ export type Milestone = {
     bar_filled_color?: string;
     position?: OverlayPosition;
     profit?: string;
-    curr_percent?: number;
+    percent?: number;
 }
