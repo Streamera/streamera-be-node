@@ -87,6 +87,13 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Poll[]> =>
     await Promise.all(_.map(result, async(r, k) => {
         const options = await PollOptionsController.find({ poll_id: result![k].id });
         result![k].options = options;
+
+        let total = 0;
+        if(options.length > 0) {
+            total = options.map(x => x.total).reduce((a, b) => a + b);
+        }
+        result![k].total = total;
+
         const style = await StylesController.view(result![k].style_id);
 
         // merge
