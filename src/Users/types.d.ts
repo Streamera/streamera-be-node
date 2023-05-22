@@ -20,4 +20,5 @@ export type User = {
     twitter?: string;
     facebook?: string;
     email?: string;
+    quick_amount: number[] | string[];
 }

@@ -71,6 +71,7 @@ export default [
                 to_chain text default 0,
                 to_token_symbol text not null default '',
                 to_token_address text not null default '',
+                quick_amount text not null default '[3, 10, 25, 50]',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
             );`,

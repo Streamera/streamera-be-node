@@ -62,7 +62,7 @@ export const view = async(id: number): Promise<User> => {
 
     // user table
     const query = `
-        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address
+        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address, d.quick_amount
         FROM ${table}
         LEFT JOIN user_donation_setting d
         ON ${table}.id = d.user_id
@@ -77,6 +77,9 @@ export const view = async(id: number): Promise<User> => {
     // user's social media table
     const socialQuery = `SELECT user_id, type, url FROM user_social_media WHERE user_id IN (${result.id})`;
     const socialResult =  await db.executeQueryForResults(socialQuery);
+
+    // decode json text
+    result.quick_amount = JSON.parse(result.quick_amount);
 
     // set social media into user's property
     const socialMedia: {[key: string]: any}  = {};
@@ -104,7 +107,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
 
     const params = formatDBParamsToStr(whereParamsPrefixed, ' AND ');
     const query = `
-        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address
+        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address, d.quick_amount
         FROM ${table}
         LEFT JOIN user_donation_setting d
         ON ${table}.id = d.user_id
@@ -122,18 +125,21 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
 
     // set social media into user's property
     const socialResult =  await db.executeQueryForResults(socialQuery);
-    _.map(result, (r, k) => {
+    await Promise.all(_.map(result, async(r, k) => {
         const socialMedia: {[key: string]: any}  = {};
         const curr = _.filter(socialResult, {user_id: r.id})
         _.map(curr, (s) => {
             socialMedia[s.type] = s.url
         });
 
+        // decode json text
+        result![k].quick_amount = JSON.parse(result![k].quick_amount);
+
         // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
         result![k] = _.omit(result![k], ['signature']);
-    });
+    }));
 
     return result as User[] ?? [];
 }
@@ -144,7 +150,7 @@ export const list = async(): Promise<User[]> => {
 
     // user table & user donation table
     const query = `
-        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address
+        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address, d.quick_amount
         FROM ${table}
         LEFT JOIN user_donation_setting d
         ON ${table}.id = d.user_id
@@ -167,6 +173,10 @@ export const list = async(): Promise<User[]> => {
             socialMedia[s.type] = s.url
         });
 
+        // decode json text
+        result![k].quick_amount = JSON.parse(result![k].quick_amount);
+
+        // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
     });
@@ -204,7 +214,7 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     await db.executeQuery(socialQuery);
 
     // user's donation setting table
-    const donationFillableColumns = ['to_chain', 'to_token_symbol', 'to_token_address'];
+    const donationFillableColumns = ['to_chain', 'to_token_symbol', 'to_token_address', 'quick_amount'];
     const donationParams = _.pick(updateParams, donationFillableColumns);
 
     // upsert hack
