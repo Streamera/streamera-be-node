@@ -23,4 +23,5 @@ export type Milestone = {
     position?: OverlayPosition;
     profit?: string;
     percent?: number;
+    theme?: Theme;
 }

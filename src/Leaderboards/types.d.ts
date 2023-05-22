@@ -1,4 +1,4 @@
-import OverlayPosition from '../OverlayStyles/types';
+import OverlayPosition, { Theme } from '../OverlayStyles/types';
 export type LeaderboardStatus = 'active' | 'inactive';
 export type LeaderboardTimeframe = 'monthly' | 'weekly' | 'daily';
 
@@ -19,4 +19,5 @@ export type Leaderboard = {
     bar_empty_color?: string;
     bar_filled_color?: string;
     position?: OverlayPosition;
+    theme?: Theme;
 }
