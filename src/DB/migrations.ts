@@ -310,27 +310,27 @@ export default [
             DROP INDEX stream_poll_options_poll_id_idx;
         `
     },
-    // {
-    //     name: "create_stream_poll_payments_table",
-    //     query: `
-    //         CREATE TABLE stream_poll_payments (
-    //             poll_id int not null,
-    //             option_id bigint not null,
-    //             payment_id bigint not null
-    //         );`,
-    //     rollback_query: `
-    //         DROP TABLE stream_poll_payments;
-    //     `
-    // },
-    // {
-    //     name: "create_stream_poll_payments_table_idx",
-    //     query: `
-    //         CREATE INDEX stream_poll_payments_poll_id_option_id_idx ON stream_poll_payments (poll_id, option_id);
-    //         `,
-    //     rollback_query: `
-    //         DROP INDEX stream_poll_payments_poll_id_option_id_idx;
-    //     `
-    // },
+    {
+        name: "create_stream_poll_payments_table",
+        query: `
+            CREATE TABLE stream_poll_payments (
+                poll_id int not null,
+                option_id bigint not null,
+                payment_id bigint not null
+            );`,
+        rollback_query: `
+            DROP TABLE stream_poll_payments;
+        `
+    },
+    {
+        name: "create_stream_poll_payments_table_idx",
+        query: `
+            CREATE INDEX stream_poll_payments_poll_id_option_id_idx ON stream_poll_payments (poll_id, option_id);
+            `,
+        rollback_query: `
+            DROP INDEX stream_poll_payments_poll_id_option_id_idx;
+        `
+    },
     {
         name: "create_stream_milestone_table",
         query: `
