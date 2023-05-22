@@ -45,6 +45,12 @@ export const find = async(whereParams: {[key: string]: any}): Promise<PollOption
     const db = new DB();
     const result: PollOption[] | undefined = await db.executeQueryForResults(query);
 
+    await Promise.all(_.map(result, async(r, k) => {
+        // merge
+        // temporary hard code
+        _.merge(result![k], { total: 1 });
+    }));
+
     return result as PollOption[] ?? [];
 }
 

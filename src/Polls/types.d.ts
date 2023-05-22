@@ -9,6 +9,7 @@ export type Poll = {
     end_at: string;
     status: PollStatus;
     style_id: number;
+    total: number;
     created_at?: string;
     updated_at?: string;
     deleted_at?: string;
