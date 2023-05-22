@@ -4,7 +4,6 @@ import {
 } from '../../utils';
 import _ from "lodash";
 import { PollOption } from "./types";
-import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_poll_options';
 const ignoreSoftDeleted = 'deleted_at IS NULL';

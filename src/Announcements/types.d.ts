@@ -1,4 +1,4 @@
-import OverlayPosition from '../OverlayStyles/types';
+import OverlayPosition, { Theme } from '../OverlayStyles/types';
 export type AnnouncementStatus = 'active' | 'inactive';
 
 export type Announcement = {
@@ -21,4 +21,5 @@ export type Announcement = {
     bar_empty_color?: string;
     bar_filled_color?: string;
     position?: OverlayPosition;
+    theme?: Theme;
 }

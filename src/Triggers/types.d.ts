@@ -20,4 +20,5 @@ export type Trigger = {
     bar_empty_color?: string;
     bar_filled_color?: string;
     position?: OverlayPosition;
+    theme?: Theme;
 }

@@ -1,5 +1,7 @@
 export type OverlayPosition = 'top-left' | 'top-center' | 'top-right' | 'middle-left' | 'middle-center' | 'middle-right' | 'bottom-left' | 'bottom-center' | 'bottom-right';
 
+export type Theme = 'none' | 'cyberpunk' | 'rainbow' | 'goldline' | 'viper';
+
 export type OverlayStyles = {
     id?: number;
     font_type: string;
@@ -12,4 +14,5 @@ export type OverlayStyles = {
     position: OverlayPosition;
     created_at?: string;
     updated_at?: string;
+    theme?: Theme;
 }
