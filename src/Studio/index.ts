@@ -21,7 +21,7 @@ export class Studio {
     constructor({ io, socket, address, onPromptDelete }: StudioConstructor) {
         this.io = io;
         this.client = socket;
-        this.room = `studio_${address}`;
+        this.room = `studio_${address.toLowerCase()}`;
         this.address = address;
         this.onPromptDelete = onPromptDelete;
     }

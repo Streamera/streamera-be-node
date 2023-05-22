@@ -143,5 +143,6 @@ export const updateIO = async(userId: number, topicId: number) => {
     const user = await UserController.view(userId);
     const topic = await view(topicId);
 
+    console.log(`studio_${user.wallet}`);
     io.to(`studio_${user.wallet}`).emit('update', { announcement: convertBigIntToString(topic) });
 }

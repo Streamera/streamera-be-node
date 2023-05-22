@@ -67,6 +67,10 @@ export const view = async(id: number): Promise<Poll> => {
     if (result) {
         const options = await PollOptionsController.find({ poll_id: result.id });
         result.options = options;
+
+        const style = await StylesController.view(result.style_id);
+        // merge
+        _.merge(result, style);
     }
 
     return result ?? {};
@@ -110,6 +114,8 @@ export const list = async(): Promise<Poll[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
+    console.log(id);
+    console.log(qr);
 
     const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
     if(users.length === 0) {

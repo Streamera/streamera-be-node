@@ -28,6 +28,8 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     // insert user
     const fillableColumns = [ 'name', 'wallet', 'signature', 'profile_picture' ];
     const filtered = _.pick(insertParams, fillableColumns);
+    // make wallet address to lower case
+    filtered.wallet = filtered.wallet.toLowerCase();
     const params = formatDBParamsToStr(filtered, ', ', true);
     const insertColumns = Object.keys(filtered);
 
@@ -97,7 +99,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
     // user table
     let whereParamsPrefixed: {[key: string]: any} = {};
     _.map(whereParams, (w, k) => {
-        whereParamsPrefixed[`${table}.${k}`] = w;
+        whereParamsPrefixed[`${table}.${k}`] = k === 'wallet' ? w.toLowerCase() : w;
     });
 
     const params = formatDBParamsToStr(whereParamsPrefixed, ' AND ');
