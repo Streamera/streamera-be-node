@@ -5,8 +5,10 @@ import {
 import _ from "lodash";
 import { io } from '../../index';
 import { Leaderboard } from "./types";
+import moment from 'moment';
 
 import * as UserController from '../Users/index';
+import * as PaymentController from '../Payments/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_leaderboards';
@@ -58,18 +60,21 @@ export const view = async(id: number): Promise<Leaderboard> => {
 
         // merge
         _.merge(result, style);
+
+        const aggregate = await PaymentController.leaderboard(result.user_id, result.timeframe);
+        result.top_donators = aggregate;
     }
 
     return result ?? {};
 }
 
 // find (all match)
-export const find = async(whereParams: {[key: string]: any}): Promise<Leaderboard[]> => {
+export const find = async(whereParams: {[key: string]: any}) => {
     const params = formatDBParamsToStr(whereParams, ' AND ');
     const query = `SELECT * FROM ${table} WHERE ${params}`;
 
     const db = new DB();
-    const result: Leaderboard[] | undefined = await db.executeQueryForResults(query);
+    const result = await db.executeQueryForResults<Leaderboard>(query);
 
     await Promise.all(
         _.map(result, async(r, k) => {
@@ -77,10 +82,13 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Leaderboar
 
             // merge
             _.merge(result![k], style);
+
+            const aggregate = await PaymentController.leaderboard(result![k].user_id, result![k].timeframe);
+            result![k].top_donators = aggregate;
         })
     );
 
-    return result as Leaderboard[] ?? [];
+    return result ?? [];
 }
 
 // list (all)

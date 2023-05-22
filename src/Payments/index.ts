@@ -4,11 +4,14 @@ import {
 } from '../../utils';
 import _ from "lodash";
 import { io } from '../../index';
-import { Payment } from "./types";
+import { Payment, PaymentAggregate } from "./types";
 
 import * as UserController from '../Users/index';
 import * as TriggerController from '../Triggers/index';
 import * as MilestoneController from '../Milestones/index';
+import { LeaderboardTimeframe } from "../Leaderboards/types";
+
+import moment from 'moment';
 
 const table = 'stream_payments';
 
@@ -55,6 +58,50 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Payment[]>
     const result = await db.executeQueryForResults(query);
 
     return result as Payment[] ?? [];
+}
+
+export const leaderboard = async(user_id: number, timeframe: LeaderboardTimeframe ) => {
+    let timeWhere = '';
+
+    switch(timeframe) {
+        case "daily":
+            timeWhere = `created_at between '${moment().format('YYYY-MM-DD')} 00:00:00' and '${moment().format('YYYY-MM-DD')} 23:59:59'`;
+            break;
+        case "weekly":
+            let thisWeekStart = moment().startOf('week').format('YYYY-MM-DD HH:mm:ss');
+            let thisWeekEnd = moment().endOf('week').format('YYYY-MM-DD HH:mm:ss');
+            timeWhere = `created_at between '${thisWeekStart}' and '${thisWeekEnd}'`;
+            break;
+        case "monthly":
+            let thisMonthStart = moment().startOf('month').format('YYYY-MM-DD HH:mm:ss');
+            let thisMonthEnd = moment().endOf('month').format('YYYY-MM-DD HH:mm:ss');
+            timeWhere = `created_at between '${thisMonthStart}' and '${thisMonthEnd}'`;
+            break;
+        default:
+            // all time is defualt
+            timeWhere = '1=1';
+            break;
+    }
+    const query = `
+        SELECT 
+            u.from_user, 
+            case u.display_name
+            when '' 
+            then p.from_wallet 
+            else u.display_name 
+            end as name, 
+            sum(coalesce(p.usd_worth, 0)) as amount_usd 
+        FROM ${table} p 
+        left join users u on u.id = p.from_user 
+        WHERE to_user = ${user_id}
+          AND ${timeWhere}
+        GROUP BY 1,2
+        ORDER BY 3 DESC
+        LIMIT 5`;
+
+    const db = new DB();
+    const result = await db.executeQueryForResults<PaymentAggregate>(query);
+    return result ?? [];
 }
 
 // list (all)
