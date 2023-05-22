@@ -62,7 +62,7 @@ export const view = async(id: number): Promise<Milestone> => {
         // get curr donated amount & milestone percentage
         const currAmount = await profit(result.user_id);
         result.profit = currAmount;
-        result.curr_percent = Number(currAmount) === 0 || Number(result.target) === 0 ? 0 : Number(currAmount) / Number(result.target);
+        result.percent = Number(currAmount) === 0 || Number(result.target) === 0 ? 0 : Math.round((Number(currAmount) / Number(result.target) * 100 * 100) / 100);
 
         // merge style data
         const style = await StylesController.view(result.style_id);
@@ -85,7 +85,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Milestone[
             // get curr donated amount & milestone percentage
             const currAmount = await profit(result![k].user_id);
             result![k].profit = currAmount;
-            result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
+            result![k].percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Math.round((Number(currAmount) / Number(result![k].target) * 100 * 100) / 100);
 
             // merge style data
             const style = await StylesController.view(result![k].style_id);
@@ -108,7 +108,7 @@ export const list = async(): Promise<Milestone[]> => {
             // get curr donated amount & milestone percentage
             const currAmount = await profit(result![k].user_id);
             result![k].profit = currAmount;
-            result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
+            result![k].percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Math.round((Number(currAmount) / Number(result![k].target) * 100 * 100) / 100);
 
             // merge style data
             const style = await StylesController.view(result![k].style_id);
