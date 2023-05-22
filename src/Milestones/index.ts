@@ -22,7 +22,7 @@ export const init = async(user_id: number) => {
         title: '',
         target: '1000.00',
         start_at: dayjs().format('YYYY-MM-DD HH:mm:ss'),
-        end_at: dayjs().add(99, 'years').format('YYYY-MM-DD HH:mm:ss'),
+        end_at: dayjs().add(1, 'years').format('YYYY-MM-DD HH:mm:ss'),
         status: "inactive",
         timeframe: 'weekly',
         ...defaultStyle
@@ -35,7 +35,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // insert style
     const style = await StylesController.create(insertParams);
-    console.log(style);
     insertParams['style_id'] = style.id;
 
     // get Milestone insert field
@@ -110,6 +109,11 @@ export const list = async(): Promise<Milestone[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
+
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
 
     // update style
     await StylesController.update(qr.style_id, updateParams);

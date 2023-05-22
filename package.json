@@ -10,6 +10,7 @@
     "migrate:seed": "tsc && node migrate.js && node seed.js",
     "drop": "tsc && node drop.js",
     "drop:seed": "tsc && node drop.js && node migrate.js && node seed.js",
+    "drop:migrate": "tsc && node drop.js && node migrate.js",
     "seed": "tsc && node seed.js",
     "rollback": "tsc && node rollback.js",
     "rollback:seed": "tsc && node rollback.js && node migrate.js && node seed.js",

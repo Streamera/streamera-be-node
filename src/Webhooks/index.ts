@@ -1,28 +1,31 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl, convertBigIntToString
+    formatDBParamsToStr, getAssetUrl,
 } from '../../utils';
 import _ from "lodash";
-import { QR } from "./types";
-import QRCode from 'qrcode';
-import AppRoot from 'app-root-path';
-import path from 'path';
-import { v4 as uuidv4 } from 'uuid';
-import { io } from '../../index';
-
 import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
+import { Webhook, WebhookExecuteParams } from "./types";
+import axios from 'axios';
 
-const table = 'stream_qr';
+const table = 'stream_webhooks';
 
 // init entry for user
 export const init = async(user_id: number) => {
-    const defaultStyle = { font_type: '', font_size: '', font_color: '', bg_color: '', bg_image: '', bar_empty_color: '', bar_filled_color: '', position: 'middle-center', };
+    await create({
+        user_id: user_id,
+        status: 'inactive',
+        type: 'discord',
+        value: '',
+        template: '',
+    });
 
     return await create({
         user_id: user_id,
         status: 'inactive',
-        ...defaultStyle
+        type: 'custom',
+        value: '',
+        template: '',
     });
 }
 
@@ -33,17 +36,8 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     // get user details
     const user = await UserController.view(insertParams.user_id);
 
-    // generate QR
-    const qrFile = `${uuidv4()}.png`;
-    await QRCode.toFile(path.join(AppRoot.toString(), `/public/content/${qrFile}`), `${user.wallet}`);
-    insertParams['qr'] = qrFile;
-
-    // insert style
-    const style = await StylesController.create(insertParams);
-    insertParams['style_id'] = style.id;
-
     // get qr insert field
-    const fillableColumns = [ 'user_id', 'qr', 'style_id', 'status' ];
+    const fillableColumns = [ 'user_id', 'status', 'value', 'template', 'type' ];
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);
     const insertColumns = Object.keys(filtered);
@@ -56,7 +50,7 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 }
 
 // view (single - id)
-export const view = async(id: number): Promise<QR> => {
+export const view = async(id: number): Promise<Webhook> => {
     const query = `SELECT * FROM ${table} WHERE id = ${id} LIMIT 1`;
 
     const db = new DB();
@@ -73,27 +67,17 @@ export const view = async(id: number): Promise<QR> => {
 }
 
 // find (all match)
-export const find = async(whereParams: {[key: string]: any}): Promise<QR[]> => {
+export const find = async(whereParams: {[key: string]: any}): Promise<Webhook[]> => {
     const params = formatDBParamsToStr(whereParams, ' AND ');
     const query = `SELECT * FROM ${table} WHERE ${params}`;
 
     const db = new DB();
-    const result: QR[] | undefined = await db.executeQueryForResults(query);
-
-    await Promise.all(
-        _.map(result, async(r, k) => {
-            result![k].qr = getAssetUrl(result![k].qr);
-            const style = await StylesController.view(result![k].style_id);
-
-            _.merge(result![k], style);
-        })
-    );
-
-    return result as QR[] ?? [];
+    const result: Webhook[] | undefined = await db.executeQueryForResults(query);
+    return result as Webhook[] ?? [];
 }
 
 // list (all)
-export const list = async(): Promise<QR[]> => {
+export const list = async(): Promise<Webhook[]> => {
     const query = `SELECT * FROM ${table}`;
 
     const db = new DB();
@@ -103,7 +87,7 @@ export const list = async(): Promise<QR[]> => {
         result![k].qr = getAssetUrl(result![k].qr);
     })
 
-    return result as QR[] ?? [];
+    return result as Webhook[] ?? [];
 }
 
 // update
@@ -115,11 +99,8 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
         throw Error("Unauthorized!");
     }
 
-    // update style
-    await StylesController.update(qr.style_id, updateParams);
-
     // filter
-    const fillableColumns = ['qr', 'status'];
+    const fillableColumns = [ 'status', 'value', 'template', 'type' ];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 
@@ -127,17 +108,36 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
-
-    await updateIO(qr.user_id, id);
 }
 
-// update io
-export const updateIO = async(userId: number, topicId: number) => {
-    const user = await UserController.view(userId);
-    const topic = await view(topicId);
-
-    io.to(`studio_${user.wallet}`).emit('update', { qr: convertBigIntToString(topic) });
+// tests the webhook notification
+export const test = async(id: number): Promise<void> => {
+    let donator = 'Chad';
+    let amount = 99;
+    await execute(id, {
+        donator,
+        amount
+    });
 }
+
+export const execute = async(id: number, params: WebhookExecuteParams) => {
+    const webhook = await view(id);
+    if(!webhook) {
+        throw Error("Missing webhook");
+    }
+
+    if(!webhook.value) {
+        throw Error("Missing webhook");
+    }
+
+    let {
+        donator,
+        amount
+    } = params;
+
+    let message = webhook.template.replace(/{{donator}}/g, donator).replace(/{{amount}}/g, amount.toString());
+    await axios.post(webhook.value, { content: message });
+} 
 
 // delete (soft delete?)
 // export const delete = async(userId: number) => {

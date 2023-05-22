@@ -30,7 +30,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // insert style
     const style = await StylesController.create(insertParams);
-    console.log(style);
     insertParams['style_id'] = style.id;
 
     // get Leaderboard insert field
@@ -105,6 +104,11 @@ export const list = async(): Promise<Leaderboard[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
+
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
 
     // update style
     await StylesController.update(qr.style_id, updateParams);

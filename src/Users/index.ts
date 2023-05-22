@@ -17,6 +17,7 @@ import * as pollController from '../Polls/index';
 import * as milestoneController from '../Milestones/index';
 import * as leaderboardController from '../Leaderboards/index';
 import * as triggerController from '../Triggers/index';
+import * as webhookController from '../Webhooks/index';
 
 const table = 'users';
 
@@ -47,6 +48,8 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     await leaderboardController.init(result.id);
     // init trigger?? (1)
     await triggerController.init(result.id);
+    // init webhooks
+    await webhookController.init(result.id);
 
     return result;
 }
@@ -127,6 +130,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
         // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
+        result![k] = _.omit(result![k], ['signature']);
     });
 
     return result as User[] ?? [];
@@ -172,10 +176,16 @@ export const list = async(): Promise<User[]> => {
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const db = new DB();
 
+    let users = await find({ id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized");
+    }
+
     // user table
-    const userFillableColumns = ['name', 'signature', 'profile_picture'];
+    const userFillableColumns = ['name' /* ,'signature' */, 'display_name', 'profile_picture'];
     const userParams = formatDBParamsToStr(_.pick(updateParams, userFillableColumns), ', ');
     const userQuery = `UPDATE ${table} SET ${userParams} WHERE id = ${id} AND status = 'active'`;
+
     // only execute when value is not empty
     if (userParams) {
         await db.executeQueryForSingleResult(userQuery);
