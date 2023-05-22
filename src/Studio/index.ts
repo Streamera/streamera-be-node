@@ -4,9 +4,9 @@ import * as userController from '../Users/index';
 import * as leaderboardController from '../Leaderboards/index';
 import * as milestoneController from '../Milestones/index';
 import * as pollController from '../Polls/index';
-import * as pollOptionController from '../PollOptions/index';
 import * as qrController from '../QR/index';
 import * as announcementController from '../Announcements/index';
+import * as triggerController from '../Triggers/index';
 import _ from 'lodash';
 import { convertBigIntToString } from "../../utils";
 export class Studio {
@@ -46,6 +46,7 @@ export class Studio {
                 poll: await pollController.find({ user_id: this.user }),
                 qr: await qrController.find({ user_id: this.user }),
                 announcement: await announcementController.find({ user_id: this.user }),
+                trigger: await triggerController.find({ user_id: this.user })
             });
 
             // only take the first result from each property
