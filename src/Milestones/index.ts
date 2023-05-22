@@ -119,7 +119,7 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     await StylesController.update(qr.style_id, updateParams);
 
     // filter
-    const fillableColumns = ['title', 'target', 'start_at', 'end_at', 'timeframe'];
+    const fillableColumns = ['title', 'target', 'start_at', 'end_at', 'timeframe', 'status'];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 
