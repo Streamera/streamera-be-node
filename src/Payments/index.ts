@@ -8,6 +8,7 @@ import { Payment } from "./types";
 
 import * as UserController from '../Users/index';
 import * as TriggerController from '../Triggers/index';
+import * as MilestoneController from '../Milestones/index';
 
 const table = 'stream_payments';
 
@@ -84,8 +85,9 @@ export const updateIO = async(userId: number, topicId: number) => {
     const user = await UserController.view(userId);
     const topic = await view(topicId);
     const topic2 = await TriggerController.find({ user_id: userId });
+    const topic3 = await MilestoneController.find({ user_id: userId });
 
-    io.to(`studio_${user.wallet}`).emit('update', { payment: convertBigIntToString(topic), trigger: convertBigIntToString(topic2?.[0]) });
+    io.to(`studio_${user.wallet}`).emit('update', { payment: convertBigIntToString(topic), trigger: convertBigIntToString(topic2?.[0]), milestone:  convertBigIntToString(topic3?.[0]) });
 }
 
 // where (with condition)

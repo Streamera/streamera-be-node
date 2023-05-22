@@ -60,9 +60,9 @@ export const view = async(id: number): Promise<Milestone> => {
 
     if (result) {
         // get curr donated amount & milestone percentage
-        // const currAmount = await profit(result.user_id);
-        // result.profit = currAmount;
-        // result.curr_percent = Number(currAmount) === 0 || Number(result.target) === 0 ? 0 : Number(currAmount) / Number(result.target);
+        const currAmount = await profit(result.user_id);
+        result.profit = currAmount;
+        result.curr_percent = Number(currAmount) === 0 || Number(result.target) === 0 ? 0 : Number(currAmount) / Number(result.target);
 
         // merge style data
         const style = await StylesController.view(result.style_id);
@@ -83,9 +83,9 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Milestone[
     await Promise.all(
         _.map(result, async(r, k) => {
             // get curr donated amount & milestone percentage
-            // const currAmount = await profit(result![k].user_id);
-            // result![k].profit = currAmount;
-            // result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
+            const currAmount = await profit(result![k].user_id);
+            result![k].profit = currAmount;
+            result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
 
             // merge style data
             const style = await StylesController.view(result![k].style_id);
@@ -106,9 +106,9 @@ export const list = async(): Promise<Milestone[]> => {
     await Promise.all(
         _.map(result, async(r, k) => {
             // get curr donated amount & milestone percentage
-            // const currAmount = await profit(result![k].user_id);
-            // result![k].profit = currAmount;
-            // result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
+            const currAmount = await profit(result![k].user_id);
+            result![k].profit = currAmount;
+            result![k].curr_percent = Number(currAmount) === 0 || Number(result![k].target) === 0 ? 0 : Number(currAmount) / Number(result![k].target);
 
             // merge style data
             const style = await StylesController.view(result![k].style_id);
@@ -156,25 +156,27 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 export const updateIO = async(userId: number, topicId: number) => {
     const user = await UserController.view(userId);
     const topic = await view(topicId);
-    const amount = await profit(userId);
 
-    io.to(`studio_${user.wallet}`).emit('update', { milestone: convertBigIntToString(topic), amount: amount });
+    io.to(`studio_${user.wallet}`).emit('update', { milestone: convertBigIntToString(topic) });
 }
 
 // get profit
 export const profit = async(userId: number): Promise<string> => {
-    const milestone: Milestone[] | undefined = await find({ user_id: userId });
+    const db = new DB();
+    const query = `SELECT * FROM ${table} WHERE user_id = ${userId}`;
+    const milestone: Milestone | undefined = await db.executeQueryForSingleResult(query);
 
-    if (milestone.length === 0) {
+    if (!milestone) {
         return '0.00';
     }
 
     // get milestone type
-    const { start, end } = getPeriod(milestone[0].timeframe);
+    const { start, end } = getPeriod(milestone!.timeframe);
 
     const txns = await PaymentController.where([
         { field: 'created_at', cond: '>=', value: start },
-        { field: 'created_at', cond: '<=', value: end }
+        { field: 'created_at', cond: '<=', value: end },
+        { field: 'to_user', cond: '=', value: userId }
     ]);
 
     const amount = _.reduce(txns, (result, value, key) => {
