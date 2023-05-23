@@ -229,6 +229,7 @@ export default [
                 bar_empty_color text not null default '',
                 bar_filled_color text not null default '',
                 position overlay_position not null default 'middle-center',
+                theme text not null default 'none',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
             );`,

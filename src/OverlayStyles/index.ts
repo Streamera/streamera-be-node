@@ -9,7 +9,7 @@ const table = 'overlay_styles';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'font_type', 'font_size', 'font_color', 'bg_color', 'bg_image', 'bar_empty_color', 'bar_filled_color', 'position' ];
+    const fillableColumns = [ 'font_type', 'font_size', 'font_color', 'bg_color', 'bg_image', 'bar_empty_color', 'bar_filled_color', 'position', 'theme' ];
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);
 
@@ -58,7 +58,7 @@ export const list = async(): Promise<OverlayStyles[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     // filter
-    const fillableColumns = [ 'font_type', 'font_size', 'font_color', 'bg_color', 'bg_image', 'bar_empty_color', 'bar_filled_color', 'position' ];
+    const fillableColumns = [ 'font_type', 'font_size', 'font_color', 'bg_color', 'bg_image', 'bar_empty_color', 'bar_filled_color', 'position', 'theme' ];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 

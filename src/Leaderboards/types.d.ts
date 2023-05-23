@@ -1,4 +1,4 @@
-import OverlayPosition from '../OverlayStyles/types';
+import OverlayPosition, { Theme } from '../OverlayStyles/types';
 import { PaymentAggregate } from '../Payments/types';
 export type LeaderboardStatus = 'active' | 'inactive';
 export type LeaderboardTimeframe = 'monthly' | 'weekly' | 'daily' | 'alltime';
@@ -21,4 +21,5 @@ export type Leaderboard = {
     bar_empty_color?: string;
     bar_filled_color?: string;
     position?: OverlayPosition;
+    theme?: Theme;
 }

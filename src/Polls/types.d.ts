@@ -1,4 +1,4 @@
-import OverlayPosition from '../OverlayStyles/types';
+import OverlayPosition, { Theme } from '../OverlayStyles/types';
 export type PollStatus = 'active' | 'inactive';
 
 export type Poll = {
@@ -22,4 +22,5 @@ export type Poll = {
     bar_filled_color?: string;
     position?: OverlayPosition;
     options?: any;
+    theme?: Theme;
 }
