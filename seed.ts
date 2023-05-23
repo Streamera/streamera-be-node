@@ -48,7 +48,7 @@ import { Query } from 'pg';
         "to_chain": 43113,
         "to_token_symbol": "aUSDC",
         "to_token_address": "0x57f1c63497aee0be305b8852b354cec793da43bb",
-        "to_amount": "1729",
+        // "to_amount": "1729",
         "tx_hash": "0x2ebf065cf375d3c729524d733d33ba8535150ac38e97701b9742b7b1f8c72256",
         "usd_worth": "0.2985"
     });
