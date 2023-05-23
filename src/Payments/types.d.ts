@@ -13,7 +13,7 @@ export type Payment = {
     to_chain: number;
     to_token_symbol: string;
     to_token_address: string;
-    to_amount: string;
+    // to_amount: string;
     tx_hash: string;
     usd_worth: string;
     status: PaymentStatus;
@@ -24,5 +24,5 @@ export type Payment = {
 export type PaymentAggregate = {
     from_user: number | null;
     name: string;
-    amount_usd: number; 
+    amount_usd: number;
 }

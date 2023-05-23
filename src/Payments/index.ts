@@ -19,9 +19,25 @@ const table = 'stream_payments';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'from_user', 'from_wallet', 'from_chain', 'from_token_symbol', 'from_token_address', 'from_amount', 'to_user', 'to_wallet', 'to_chain', 'to_token_symbol', 'to_token_address', 'to_amount', 'tx_hash', 'usd_worth' ];
+    const fillableColumns = [ 'from_user', 'from_wallet', 'from_chain', 'from_token_symbol', 'from_token_address', 'from_amount', 'to_user', 'to_wallet', 'to_chain', 'to_token_symbol', 'to_token_address', 'tx_hash', 'usd_worth' ];
 
     const filtered = _.pick(insertParams, fillableColumns);
+
+    const fromId = await UserController.find({ wallet: filtered.from_wallet.toLowerCase() });
+
+    // if from_user not exist, we create 1 for them
+    if (fromId.length === 0) {
+        const fromId = await UserController.create({ name: '', wallet: filtered.from_wallet!, signature: '', profile_picture: '' });
+
+        filtered['from_user'] = fromId.id;
+    } else {
+        filtered['from_user'] = fromId?.[0].id;
+    }
+
+    // set lowercase for wallet address
+    filtered.from_wallet = filtered.from_wallet.toLowerCase();
+    filtered.to_wallet = filtered.to_wallet.toLowerCase();
+
     const params = formatDBParamsToStr(filtered, ', ', true);
 
     // put quote
@@ -85,15 +101,15 @@ export const leaderboard = async(user_id: number, timeframe: LeaderboardTimefram
             break;
     }
     const query = `
-        SELECT 
-            p.from_wallet, 
-            case 
+        SELECT
+            p.from_wallet,
+            case
             when u.display_name = '' or u.display_name is null then p.from_wallet
-            else u.display_name 
-            end as name, 
-            sum(coalesce(p.usd_worth, 0)) as amount_usd 
-        FROM ${table} p 
-        left join users u on u.id = p.from_user 
+            else u.display_name
+            end as name,
+            sum(coalesce(p.usd_worth, 0)) as amount_usd
+        FROM ${table} p
+        left join users u on u.id = p.from_user
         WHERE to_user = ${user_id}
           AND ${timeWhere}
         GROUP BY 1,2
@@ -149,7 +165,7 @@ export const updateIO = async(userId: number, topicId: number) => {
     }
 
     let message = trigger?.[0].caption.replace(/{{donator}}/g, donatorName).replace(/{{amount}}/g, `$${payment.usd_worth}`);
-    
+
     io.to(`studio_${user.wallet}`).emit('update', { milestone:  convertBigIntToString(topic3?.[0]), leaderboard: convertBigIntToString(leaderboard?.[0]) });
     io.to(`studio_${user.wallet}`).emit('payment', message);
 
