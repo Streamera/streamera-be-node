@@ -1,6 +1,6 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, convertBigIntToString, customDBWhereParams
+    formatDBParamsToStr, convertBigIntToString, customDBWhereParams, ellipsizeThis
 } from '../../utils';
 import _ from "lodash";
 import { io } from '../../index';
@@ -9,6 +9,7 @@ import { Payment, PaymentAggregate } from "./types";
 import * as UserController from '../Users/index';
 import * as TriggerController from '../Triggers/index';
 import * as MilestoneController from '../Milestones/index';
+import * as LeaderboardController from '../Leaderboards/index';
 import { LeaderboardTimeframe } from "../Leaderboards/types";
 
 import moment from 'moment';
@@ -65,17 +66,17 @@ export const leaderboard = async(user_id: number, timeframe: LeaderboardTimefram
 
     switch(timeframe) {
         case "daily":
-            timeWhere = `created_at between '${moment().format('YYYY-MM-DD')} 00:00:00' and '${moment().format('YYYY-MM-DD')} 23:59:59'`;
+            timeWhere = `p.created_at between '${moment().format('YYYY-MM-DD')} 00:00:00' and '${moment().format('YYYY-MM-DD')} 23:59:59'`;
             break;
         case "weekly":
             let thisWeekStart = moment().startOf('week').format('YYYY-MM-DD HH:mm:ss');
             let thisWeekEnd = moment().endOf('week').format('YYYY-MM-DD HH:mm:ss');
-            timeWhere = `created_at between '${thisWeekStart}' and '${thisWeekEnd}'`;
+            timeWhere = `p.created_at between '${thisWeekStart}' and '${thisWeekEnd}'`;
             break;
         case "monthly":
             let thisMonthStart = moment().startOf('month').format('YYYY-MM-DD HH:mm:ss');
             let thisMonthEnd = moment().endOf('month').format('YYYY-MM-DD HH:mm:ss');
-            timeWhere = `created_at between '${thisMonthStart}' and '${thisMonthEnd}'`;
+            timeWhere = `p.created_at between '${thisMonthStart}' and '${thisMonthEnd}'`;
             break;
         default:
             // all time is defualt
@@ -84,10 +85,9 @@ export const leaderboard = async(user_id: number, timeframe: LeaderboardTimefram
     }
     const query = `
         SELECT 
-            u.from_user, 
-            case u.display_name
-            when '' 
-            then p.from_wallet 
+            p.from_wallet, 
+            case 
+            when u.display_name = '' or u.display_name is null then p.from_wallet
             else u.display_name 
             end as name, 
             sum(coalesce(p.usd_worth, 0)) as amount_usd 
@@ -130,11 +130,27 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 // update io
 export const updateIO = async(userId: number, topicId: number) => {
     const user = await UserController.view(userId);
-    const topic = await view(topicId);
-    const topic2 = await TriggerController.find({ user_id: userId });
+    const payment = await view(topicId);
+    const trigger = await TriggerController.find({ user_id: userId });
     const topic3 = await MilestoneController.find({ user_id: userId });
+    const leaderboard = await LeaderboardController.find({ user_id: userId });
+    const donator = await UserController.view(payment.from_user);
 
-    io.to(`studio_${user.wallet}`).emit('update', { payment: convertBigIntToString(topic), trigger: convertBigIntToString(topic2?.[0]), milestone:  convertBigIntToString(topic3?.[0]) });
+    // sometimes there will be no user
+    if(trigger.length === 0){
+        return;
+    }
+
+    let donatorName = ellipsizeThis(payment.from_wallet, 10, 0);
+
+    if(donator.name) {
+        donatorName = donator.name;
+    }
+
+    let message = trigger?.[0].caption.replace(/{{donator}}/g, donatorName).replace(/{{amount}}/g, `$${payment.usd_worth}`);
+    
+    io.to(`studio_${user.wallet}`).emit('update', { milestone:  convertBigIntToString(topic3?.[0]), leaderboard: convertBigIntToString(leaderboard?.[0]) });
+    io.to(`studio_${user.wallet}`).emit('payment', message);
 }
 
 // where (with condition)
