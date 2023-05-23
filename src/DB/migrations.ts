@@ -179,7 +179,6 @@ export default [
                 to_chain int not null,
                 to_token_symbol text not null,
                 to_token_address text not null,
-                to_amount numeric(72,18) not null,
                 tx_hash text not null,
                 usd_worth numeric(18,2) not null,
                 status stream_payment_status not null default 'pending',
