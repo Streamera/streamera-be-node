@@ -167,7 +167,7 @@ export default [
 
             CREATE TABLE stream_payments (
                 id bigserial PRIMARY KEY,
-                from_user int not null,
+                from_user int,
                 from_wallet text not null,
                 from_chain int not null,
                 from_token_symbol text not null,

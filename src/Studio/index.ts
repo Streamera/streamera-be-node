@@ -41,12 +41,12 @@ export class Studio {
             // socket also can't send the data
             // console.log(await leaderboardController.find({ user_id: this.user }));
             let data = convertBigIntToString({
-                leaderboard: await leaderboardController.find({ user_id: this.user }),
-                milestone: await milestoneController.find({ user_id: this.user }),
-                poll: await pollController.find({ user_id: this.user }),
-                qr: await qrController.find({ user_id: this.user }),
-                announcement: await announcementController.find({ user_id: this.user }),
-                trigger: await triggerController.find({ user_id: this.user })
+                leaderboard: await leaderboardController.find({ user_id: this.user, status: "active" }),
+                milestone: await milestoneController.find({ user_id: this.user, status: "active" }),
+                poll: await pollController.find({ user_id: this.user , status: "active"}),
+                qr: await qrController.find({ user_id: this.user, status: "active" }),
+                announcement: await announcementController.find({ user_id: this.user, status: "active" }),
+                trigger: await triggerController.find({ user_id: this.user, status: "active" })
             });
 
 

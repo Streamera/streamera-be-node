@@ -7,6 +7,7 @@ export type Trigger = {
     user_id: number;
     style_id: number;
     content: string;
+    caption: string;
     type: TriggerType;
     status: TriggerStatus;
     created_at?: string;
