@@ -119,6 +119,34 @@ export const test = async(id: number): Promise<void> => {
         amount
     });
 }
+export const executeByUserId = async(user_id: number, params: WebhookExecuteParams) => {
+    const webhooks = await find({ user_id });
+    if(!webhooks) {
+        throw Error("Missing webhook");
+    }
+
+    if(webhooks.length === 0) {
+        throw Error("Missing webhook");
+    }
+
+    let {
+        donator,
+        amount
+    } = params;
+
+    for(const webhook of webhooks) {
+        if(!webhook.value) {
+            continue;
+        }
+
+        if(!webhook.template) {
+            continue;
+        }
+
+        let message = webhook.template.replace(/{{donator}}/g, donator).replace(/{{amount}}/g, amount.toString());
+        await axios.post(webhook.value, { content: message });
+    }
+} 
 
 export const execute = async(id: number, params: WebhookExecuteParams) => {
     const webhook = await view(id);
@@ -128,6 +156,10 @@ export const execute = async(id: number, params: WebhookExecuteParams) => {
 
     if(!webhook.value) {
         throw Error("Missing webhook");
+    }
+
+    if(!webhook.template) {
+        throw Error("Empty message");
     }
 
     let {

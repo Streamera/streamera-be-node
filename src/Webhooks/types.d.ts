@@ -12,5 +12,5 @@ export type Webhook = {
 
 export type WebhookExecuteParams = {
     donator: string;
-    amount: number;
+    amount: number | string;
 }
