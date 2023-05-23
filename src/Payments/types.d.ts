@@ -20,3 +20,9 @@ export type Payment = {
     created_at?: string;
     updated_at?: string | null;
 }
+
+export type PaymentAggregate = {
+    from_user: number | null;
+    name: string;
+    amount_usd: number; 
+}

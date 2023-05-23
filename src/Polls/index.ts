@@ -121,9 +121,6 @@ export const list = async(): Promise<Poll[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
-    console.log(id);
-    console.log(qr);
-
     const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
     if(users.length === 0) {
         throw Error("Unauthorized!");

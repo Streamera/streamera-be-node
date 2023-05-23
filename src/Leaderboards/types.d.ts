@@ -1,6 +1,7 @@
 import OverlayPosition, { Theme } from '../OverlayStyles/types';
+import { PaymentAggregate } from '../Payments/types';
 export type LeaderboardStatus = 'active' | 'inactive';
-export type LeaderboardTimeframe = 'monthly' | 'weekly' | 'daily';
+export type LeaderboardTimeframe = 'monthly' | 'weekly' | 'daily' | 'alltime';
 
 export type Leaderboard = {
     id?: number;
@@ -9,6 +10,7 @@ export type Leaderboard = {
     style_id: number;
     status: LeaderboardStatus;
     timeframe: LeaderboardTimeframe;
+    top_donators: PaymentAggregate[];
     created_at?: string;
     updated_at?: string;
     font_type?: string;
