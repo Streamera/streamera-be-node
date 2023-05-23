@@ -77,7 +77,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Trigger[]>
 
     await Promise.all(
         _.map(result, async(r, k) => {
-            result![k].content = getAssetUrl(result![k].content);
+            result![k].content = result![k].content ? getAssetUrl(result![k].content) : "";
             const style = await StylesController.view(result![k].style_id);
 
             // merge

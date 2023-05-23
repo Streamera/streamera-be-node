@@ -10,6 +10,7 @@ import * as UserController from '../Users/index';
 import * as TriggerController from '../Triggers/index';
 import * as MilestoneController from '../Milestones/index';
 import * as LeaderboardController from '../Leaderboards/index';
+import * as WebhookController from '../Webhooks/index';
 import { LeaderboardTimeframe } from "../Leaderboards/types";
 
 import moment from 'moment';
@@ -167,6 +168,8 @@ export const updateIO = async(userId: number, topicId: number) => {
 
     io.to(`studio_${user.wallet}`).emit('update', { milestone:  convertBigIntToString(topic3?.[0]), leaderboard: convertBigIntToString(leaderboard?.[0]) });
     io.to(`studio_${user.wallet}`).emit('payment', message);
+
+    WebhookController.executeByUserId(userId, { donator: donatorName, amount: payment.usd_worth })
 }
 
 // where (with condition)
