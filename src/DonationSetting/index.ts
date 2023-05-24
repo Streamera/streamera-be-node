@@ -11,15 +11,16 @@ const table = 'user_donation_setting';
 export const init = async(user_id: number) => {
     return await create({
         user_id: user_id,
-        to_chain: 0,
-        to_token_symbol: '',
-        to_token_address: ''
+        to_chain: 97,
+        to_token_symbol: 'bnb',
+        to_token_address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
+        quick_amount: '[3, 10, 25, 50]'
     });
 }
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'user_id', 'to_chain', 'to_token_symbol', 'to_token_address' ];
+    const fillableColumns = [ 'user_id', 'to_chain', 'to_token_symbol', 'to_token_address', 'quick_amount' ];
 
     const filtered = _.pick(insertParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ', true);
@@ -69,7 +70,7 @@ export const list = async(): Promise<DonationSetting[]> => {
 // update
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     // filter
-    const fillableColumns = [ 'to_chain', 'to_token_symbol', 'to_token_address' ];
+    const fillableColumns = [ 'to_chain', 'to_token_symbol', 'to_token_address', 'quick_amount' ];
     const filtered = _.pick(updateParams, fillableColumns);
     const params = formatDBParamsToStr(filtered, ', ');
 

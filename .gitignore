@@ -12,3 +12,6 @@ test.ts
 *.log
 yarn.lock
 public/content/*
+
+// remove personal configs
+nodemon.json

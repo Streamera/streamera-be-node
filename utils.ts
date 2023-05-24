@@ -8,6 +8,7 @@ import axios, {AxiosRequestHeaders, AxiosRequestConfig, AxiosResponse} from "axi
 import crypto from "crypto";
 import DB from './src/DB';
 import _ from 'lodash';
+import dayjs, { OpUnitType } from 'dayjs';
 
 export function sleep(ms: number) {
     return new Promise((resolve, reject) => {
@@ -232,20 +233,36 @@ export const isCurrentUserAdmin = async (discord_id : string) => {
  */
 export const formatDBParamsToStr = (params : {
     [key : string]: any
-}, separator : string = ', ', valueOnly : boolean = false) => {
+}, separator : string = ', ', valueOnly : boolean = false, prepend: string = "") => {
     let stringParams: string[] = [];
     _.map(params, (p, k) => {
         const value = typeof p === 'string' ? `'${p}'` : p;
 
         if (valueOnly) {
-            stringParams.push(`${value}`);
+            stringParams.push(`${prepend? prepend + "." : ""}${value}`);
         } else {
-            stringParams.push(`${k} = ${value}`);
+            stringParams.push(`${prepend? prepend + "." : ""}${k} = ${value}`);
         }
     })
 
     return _.join(stringParams, separator);
 }
+
+/*
+* Use to construct postgres where params with custom condition like 'LIKE', '>', '<', etc
+* @date 2023-05-17
+* @param {[key: string]: { cond: string, value: any }} params
+*/
+export const customDBWhereParams = (params : { field: string, cond: string, value: any }[]) => {
+   const stringParams: string[] = [];
+   _.map(params, (wp) => {
+        const value = typeof wp.value === 'string' ? `'${wp.value}'` : wp.value;
+        stringParams.push(`${wp.field} ${wp.cond} ${value}`)
+   });
+
+   return _.join(stringParams, ' AND ');
+}
+
 
 /**
  * Append hostname file path, construct url
@@ -323,4 +340,14 @@ export const checkAllowedMime = (mime: string, checkTypes: mimeTypes[]): boolean
     });
 
     return valid;
+}
+
+export const getPeriod = (period: 'monthly' | 'weekly' | 'daily') => {
+    const dayParam = {
+        'monthly': 'month',
+        'weekly': 'week',
+        'daily': 'day'
+    }
+
+    return { start: dayjs().startOf(dayParam[period] as OpUnitType).format('YYYY-MM-DD HH:mm:ss'), end: dayjs().endOf(dayParam[period] as OpUnitType).format('YYYY-MM-DD HH:mm:ss') };
 }

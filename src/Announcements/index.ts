@@ -1,10 +1,13 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl,
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString
 } from '../../utils';
 import _ from "lodash";
 import dayjs from "dayjs";
+import { io } from '../../index';
 import { Announcement } from "./types";
+
+import * as UserController from '../Users/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_announcements';
@@ -77,7 +80,7 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Announceme
             const style = await StylesController.view(result![k].style_id);
 
             // merge
-            _.merge(result, style);
+            _.merge(result![k], style);
         })
     );
 
@@ -106,6 +109,11 @@ export const list = async(): Promise<Announcement[]> => {
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
 
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
+
     // update style
     await StylesController.update(qr.style_id, updateParams);
 
@@ -118,6 +126,8 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    await updateIO(qr.user_id, id);
 }
 
 // delete (soft delete?)
@@ -126,4 +136,13 @@ export const remove = async(id: number) => {
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+
+    console.log(`studio_${user.wallet}`);
+    io.to(`studio_${user.wallet}`).emit('update', { announcement: convertBigIntToString(topic) });
 }

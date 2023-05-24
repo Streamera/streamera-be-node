@@ -4,7 +4,6 @@ import {
 } from '../../utils';
 import _ from "lodash";
 import { PollOption } from "./types";
-import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_poll_options';
 const ignoreSoftDeleted = 'deleted_at IS NULL';
@@ -44,6 +43,12 @@ export const find = async(whereParams: {[key: string]: any}): Promise<PollOption
 
     const db = new DB();
     const result: PollOption[] | undefined = await db.executeQueryForResults(query);
+
+    await Promise.all(_.map(result, async(r, k) => {
+        // merge
+        // temporary hard code
+        _.merge(result![k], { total: 1 });
+    }));
 
     return result as PollOption[] ?? [];
 }

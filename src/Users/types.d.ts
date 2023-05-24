@@ -20,4 +20,10 @@ export type User = {
     twitter?: string;
     facebook?: string;
     email?: string;
+    quick_amount: number[] | string[];
+}
+
+export type VerifyData = {
+    wallet: string;
+    signature: string;
 }

@@ -4,9 +4,10 @@ export type TriggerStatus = 'active' | 'inactive';
 
 export type Trigger = {
     id?: number;
-    user_id: string;
+    user_id: number;
     style_id: number;
     content: string;
+    caption: string;
     type: TriggerType;
     status: TriggerStatus;
     created_at?: string;
@@ -20,4 +21,5 @@ export type Trigger = {
     bar_empty_color?: string;
     bar_filled_color?: string;
     position?: OverlayPosition;
+    theme?: Theme;
 }

@@ -1,17 +1,43 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr,
+    formatDBParamsToStr, convertBigIntToString, customDBWhereParams, ellipsizeThis
 } from '../../utils';
 import _ from "lodash";
-import { Payment } from "./types";
+import { io } from '../../index';
+import { Payment, PaymentAggregate, History } from "./types";
+
+import * as UserController from '../Users/index';
+import * as TriggerController from '../Triggers/index';
+import * as MilestoneController from '../Milestones/index';
+import * as LeaderboardController from '../Leaderboards/index';
+import * as WebhookController from '../Webhooks/index';
+import { LeaderboardTimeframe } from "../Leaderboards/types";
+
+import moment from 'moment';
 
 const table = 'stream_payments';
 
 // create
 export const create = async(insertParams: any): Promise<{[id: string]: number}> => {
-    const fillableColumns = [ 'from_user', 'from_wallet', 'from_chain', 'from_token_symbol', 'from_token_address', 'from_amount', 'to_user', 'to_wallet', 'to_chain', 'to_token_symbol', 'to_token_address', 'to_amount', 'tx_hash', 'usd_worth' ];
+    const fillableColumns = [ 'from_user', 'from_wallet', 'from_chain', 'from_token_symbol', 'from_token_address', 'from_amount', 'to_user', 'to_wallet', 'to_chain', 'to_token_symbol', 'to_token_address', 'tx_hash', 'usd_worth' ];
 
     const filtered = _.pick(insertParams, fillableColumns);
+
+    const fromId = await UserController.find({ wallet: filtered.from_wallet.toLowerCase() });
+
+    // if from_user not exist, we create 1 for them
+    if (fromId.length === 0) {
+        const fromId = await UserController.create({ name: '', wallet: filtered.from_wallet!, signature: '', profile_picture: '' });
+
+        filtered['from_user'] = fromId.id;
+    } else {
+        filtered['from_user'] = fromId?.[0].id;
+    }
+
+    // set lowercase for wallet address
+    filtered.from_wallet = filtered.from_wallet.toLowerCase();
+    filtered.to_wallet = filtered.to_wallet.toLowerCase();
+
     const params = formatDBParamsToStr(filtered, ', ', true);
 
     // put quote
@@ -22,7 +48,13 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     const db = new DB();
     const result = await db.executeQueryForSingleResult(query);
 
-    return result;
+    if (result) {
+        await updateIO(filtered.to_user, result.id);
+        return result;
+    } else {
+        return {};
+    }
+
 }
 
 // view (single - id)
@@ -46,6 +78,49 @@ export const find = async(whereParams: {[key: string]: any}): Promise<Payment[]>
     return result as Payment[] ?? [];
 }
 
+export const leaderboard = async(user_id: number, timeframe: LeaderboardTimeframe ) => {
+    let timeWhere = '';
+
+    switch(timeframe) {
+        case "daily":
+            timeWhere = `p.created_at between '${moment().format('YYYY-MM-DD')} 00:00:00' and '${moment().format('YYYY-MM-DD')} 23:59:59'`;
+            break;
+        case "weekly":
+            let thisWeekStart = moment().startOf('week').format('YYYY-MM-DD HH:mm:ss');
+            let thisWeekEnd = moment().endOf('week').format('YYYY-MM-DD HH:mm:ss');
+            timeWhere = `p.created_at between '${thisWeekStart}' and '${thisWeekEnd}'`;
+            break;
+        case "monthly":
+            let thisMonthStart = moment().startOf('month').format('YYYY-MM-DD HH:mm:ss');
+            let thisMonthEnd = moment().endOf('month').format('YYYY-MM-DD HH:mm:ss');
+            timeWhere = `p.created_at between '${thisMonthStart}' and '${thisMonthEnd}'`;
+            break;
+        default:
+            // all time is defualt
+            timeWhere = '1=1';
+            break;
+    }
+    const query = `
+        SELECT
+            p.from_wallet,
+            case
+            when u.display_name = '' or u.display_name is null then p.from_wallet
+            else u.display_name
+            end as name,
+            sum(coalesce(p.usd_worth, 0)) as amount_usd
+        FROM ${table} p
+        left join users u on u.id = p.from_user
+        WHERE to_user = ${user_id}
+          AND ${timeWhere}
+        GROUP BY 1,2
+        ORDER BY 3 DESC
+        LIMIT 5`;
+
+    const db = new DB();
+    const result = await db.executeQueryForResults<PaymentAggregate>(query);
+    return result ?? [];
+}
+
 // list (all)
 export const list = async(): Promise<Payment[]> => {
     const query = `SELECT * FROM ${table}`;
@@ -67,6 +142,60 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const payment = await view(topicId);
+    const trigger = await TriggerController.find({ user_id: userId });
+    const topic3 = await MilestoneController.find({ user_id: userId });
+    const leaderboard = await LeaderboardController.find({ user_id: userId });
+    const donator = await UserController.view(payment.from_user);
+
+    // sometimes there will be no user
+    if(trigger.length === 0){
+        return;
+    }
+
+    let donatorName = ellipsizeThis(payment.from_wallet, 10, 0);
+
+    if(donator.name) {
+        donatorName = donator.name;
+    }
+
+    let message = trigger?.[0].caption.replace(/{{donator}}/g, donatorName).replace(/{{amount}}/g, `$${payment.usd_worth}`);
+
+    io.to(`studio_${user.wallet}`).emit('update', { milestone:  convertBigIntToString(topic3?.[0]), leaderboard: convertBigIntToString(leaderboard?.[0]) });
+    io.to(`studio_${user.wallet}`).emit('payment', message);
+
+    WebhookController.executeByUserId(userId, { donator: donatorName, amount: payment.usd_worth })
+}
+
+// where (with condition)
+export const where = async(whereParams: { field: string, cond: string, value: any }[]): Promise<Payment[]> => {
+    const whereString = customDBWhereParams(whereParams);
+    const query = `SELECT * FROM ${table} WHERE ${whereString}`;
+
+    const db = new DB();
+    const result = await db.executeQueryForResults(query);
+
+    return result as Payment[] ?? [];
+}
+
+export const history = async(wallet: string): Promise<History> => {
+    const db = new DB();
+
+    const sendQuery = `SELECT * FROM ${table} WHERE from_wallet = '${wallet}' ORDER BY created_at DESC LIMIT 10`;
+    const sendTxs = await db.executeQueryForResults(sendQuery);
+
+    const receiveQuery = `SELECT * FROM ${table} WHERE to_wallet = '${wallet}' ORDER BY created_at DESC LIMIT 10`;
+    const receiveTxs = await db.executeQueryForResults(receiveQuery);
+
+    return {
+        send: convertBigIntToString(sendTxs) ?? [],
+        receive: convertBigIntToString(receiveTxs) ?? []
+    }
 }
 
 // delete (soft delete?)

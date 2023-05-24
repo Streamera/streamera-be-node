@@ -1,11 +1,13 @@
 import DB from "../DB"
 import {
+    convertBigIntToString,
     formatDBParamsToStr,
     getAssetUrl,
     getInsertQuery,
     getUpsertQuery
 } from '../../utils';
 import _ from "lodash";
+import { io } from '../../index';
 import { User } from "./types";
 
 import * as announcementController from '../Announcements/index';
@@ -15,6 +17,7 @@ import * as pollController from '../Polls/index';
 import * as milestoneController from '../Milestones/index';
 import * as leaderboardController from '../Leaderboards/index';
 import * as triggerController from '../Triggers/index';
+import * as webhookController from '../Webhooks/index';
 
 const table = 'users';
 
@@ -25,6 +28,8 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     // insert user
     const fillableColumns = [ 'name', 'wallet', 'signature', 'profile_picture' ];
     const filtered = _.pick(insertParams, fillableColumns);
+    // make wallet address to lower case
+    filtered.wallet = filtered.wallet.toLowerCase();
     const params = formatDBParamsToStr(filtered, ', ', true);
     const insertColumns = Object.keys(filtered);
 
@@ -45,6 +50,8 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
     await leaderboardController.init(result.id);
     // init trigger?? (1)
     await triggerController.init(result.id);
+    // init webhooks
+    await webhookController.init(result.id);
 
     return result;
 }
@@ -55,7 +62,7 @@ export const view = async(id: number): Promise<User> => {
 
     // user table
     const query = `
-        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address
+        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address, d.quick_amount
         FROM ${table}
         LEFT JOIN user_donation_setting d
         ON ${table}.id = d.user_id
@@ -70,6 +77,9 @@ export const view = async(id: number): Promise<User> => {
     // user's social media table
     const socialQuery = `SELECT user_id, type, url FROM user_social_media WHERE user_id IN (${result.id})`;
     const socialResult =  await db.executeQueryForResults(socialQuery);
+
+    // decode json text
+    result.quick_amount = JSON.parse(result.quick_amount);
 
     // set social media into user's property
     const socialMedia: {[key: string]: any}  = {};
@@ -92,12 +102,12 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
     // user table
     let whereParamsPrefixed: {[key: string]: any} = {};
     _.map(whereParams, (w, k) => {
-        whereParamsPrefixed[`${table}.${k}`] = w;
+        whereParamsPrefixed[`${table}.${k}`] = k === 'wallet' ? w.toLowerCase() : w;
     });
 
     const params = formatDBParamsToStr(whereParamsPrefixed, ' AND ');
     const query = `
-        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address
+        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address, d.quick_amount
         FROM ${table}
         LEFT JOIN user_donation_setting d
         ON ${table}.id = d.user_id
@@ -115,17 +125,21 @@ export const find = async(whereParams: {[key: string]: any}): Promise<User[]> =>
 
     // set social media into user's property
     const socialResult =  await db.executeQueryForResults(socialQuery);
-    _.map(result, (r, k) => {
+    await Promise.all(_.map(result, async(r, k) => {
         const socialMedia: {[key: string]: any}  = {};
         const curr = _.filter(socialResult, {user_id: r.id})
         _.map(curr, (s) => {
             socialMedia[s.type] = s.url
         });
 
+        // decode json text
+        result![k].quick_amount = JSON.parse(result![k].quick_amount);
+
         // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
-    });
+        result![k] = _.omit(result![k], ['signature']);
+    }));
 
     return result as User[] ?? [];
 }
@@ -136,7 +150,7 @@ export const list = async(): Promise<User[]> => {
 
     // user table & user donation table
     const query = `
-        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address
+        SELECT ${table}.*, d.to_chain, d.to_token_symbol, d.to_token_address, d.quick_amount
         FROM ${table}
         LEFT JOIN user_donation_setting d
         ON ${table}.id = d.user_id
@@ -159,6 +173,10 @@ export const list = async(): Promise<User[]> => {
             socialMedia[s.type] = s.url
         });
 
+        // decode json text
+        result![k].quick_amount = JSON.parse(result![k].quick_amount);
+
+        // set profile pic url
         result![k].profile_picture = result![k].profile_picture ? getAssetUrl(result![k].profile_picture) : null;
         result![k].social = socialMedia;
     });
@@ -170,10 +188,16 @@ export const list = async(): Promise<User[]> => {
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const db = new DB();
 
+    let users = await find({ id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized");
+    }
+
     // user table
-    const userFillableColumns = ['name', 'signature', 'profile_picture'];
+    const userFillableColumns = ['name' /* ,'signature' */, 'display_name', 'profile_picture'];
     const userParams = formatDBParamsToStr(_.pick(updateParams, userFillableColumns), ', ');
     const userQuery = `UPDATE ${table} SET ${userParams} WHERE id = ${id} AND status = 'active'`;
+
     // only execute when value is not empty
     if (userParams) {
         await db.executeQueryForSingleResult(userQuery);
@@ -190,7 +214,7 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
     await db.executeQuery(socialQuery);
 
     // user's donation setting table
-    const donationFillableColumns = ['to_chain', 'to_token_symbol', 'to_token_address'];
+    const donationFillableColumns = ['to_chain', 'to_token_symbol', 'to_token_address', 'quick_amount'];
     const donationParams = _.pick(updateParams, donationFillableColumns);
 
     // upsert hack
@@ -203,6 +227,28 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const donationQuery = getUpsertQuery('user_donation_setting', donationUpdateValue, donationInsertValue, donationSearchValue);
     await db.executeQuery(donationQuery);
+
+    await updateIO(id);
+}
+
+// update io
+export const updateIO = async(id: number) => {
+    const user = await view(id);
+
+    io.to(`studio_${user.wallet}`).emit('update', { user: convertBigIntToString(user) });
+}
+
+// check if user exist and signature empty?
+// if empty update it with the current signature
+export const verify = async(wallet: string, signature: string) => {
+    const user = await find({ wallet: wallet });
+
+    if (user.length !== 0 && user[0].signature === '') {
+        await update(user[0].id!, { signature: signature });
+        return true;
+    } else {
+        return false;
+    }
 }
 
 // delete (soft delete?)

@@ -35,7 +35,17 @@ routes.post('/', async(req, res) => {
 // have to use POST to update (because multer does not support PUT)
 routes.post('/update/:id', async(req, res) => {
     let data = req.body;
-    await controller.update(parseInt(req.params.id), data);
 
-    return res.json({ success: true });
+    try {
+        await controller.update(parseInt(req.params.id), data);
+        return res.json({ success: true });
+    }
+
+    catch(e: any) {
+        if(e.message === "Unauthorized") {
+            return res.status(401).send("Unauthorized");
+        }
+
+        return res.status(500);
+    }
 });
