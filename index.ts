@@ -18,6 +18,7 @@ import { routes as webhookRoutes } from './src/Routes/webhooks';
 dotenv.config({ path: path.join(__dirname, '.env')});
 import { instrument } from '@socket.io/admin-ui';
 import { Studio } from './src/Studio';
+import { getServerPort } from './utils';
 
 process.on('uncaughtException', function (err) {
     //dont stop on uncaught exception
@@ -25,7 +26,7 @@ process.on('uncaughtException', function (err) {
 });
 
 //create app
-const port = 8081;
+const port = getServerPort() ?? 8081;
 const whitelists = JSON.parse(process.env.CORS_WHITELIST!);
 
 let app = express();
