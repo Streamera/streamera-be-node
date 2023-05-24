@@ -26,3 +26,8 @@ export type PaymentAggregate = {
     name: string;
     amount_usd: number;
 }
+
+export type History = {
+    send: Payment[];
+    receive: Payment[];
+}

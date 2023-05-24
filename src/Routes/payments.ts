@@ -39,3 +39,9 @@ routes.post('/update/:id', async(req, res) => {
 
     return res.json({ success: true });
 });
+
+routes.get('/history/:address', async(req, res) => {
+    const data = await controller.history(req.params.address.toLowerCase());
+
+    return res.json({ success: true, data: data });
+});
