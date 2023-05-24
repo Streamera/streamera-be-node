@@ -276,6 +276,14 @@ export const getAssetUrl = (url : string) => {
 }
 
 /**
+ * Gets the frontend domain
+ * @date 2023-05-24
+ */
+export const getDappDomain = () => {
+    return process.env.DAPP_DOMAIN!;
+}
+
+/**
  * Convert bigint inside obj into string (faciliate JSON.stringify)
  * @date 2023-05-17
  * @param { any } obj

@@ -1,6 +1,6 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl, convertBigIntToString
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString, getDappDomain
 } from '../../utils';
 import _ from "lodash";
 import { QR } from "./types";
@@ -35,7 +35,7 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // generate QR
     const qrFile = `${uuidv4()}.png`;
-    await QRCode.toFile(path.join(AppRoot.toString(), `/public/content/${qrFile}`), `${user.wallet}`);
+    await QRCode.toFile(path.join(AppRoot.toString(), `/public/content/${qrFile}`), `https://metamask.app.link/dapp/${getDappDomain()}/pay/${user.wallet}`);
     insertParams['qr'] = qrFile;
 
     // insert style
