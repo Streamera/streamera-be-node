@@ -22,3 +22,8 @@ export type User = {
     email?: string;
     quick_amount: number[] | string[];
 }
+
+export type VerifyData = {
+    wallet: string;
+    signature: string;
+}

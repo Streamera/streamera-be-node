@@ -238,6 +238,19 @@ export const updateIO = async(id: number) => {
     io.to(`studio_${user.wallet}`).emit('update', { user: convertBigIntToString(user) });
 }
 
+// check if user exist and signature empty?
+// if empty update it with the current signature
+export const verify = async(wallet: string, signature: string) => {
+    const user = await find({ wallet: wallet });
+
+    if (user.length !== 0 && user[0].signature === '') {
+        await update(user[0].id!, { signature: signature });
+        return true;
+    } else {
+        return false;
+    }
+}
+
 // delete (soft delete?)
 // export const delete = async(userId: number) => {
 //     const query = `DELETE FROM users WHERE user_id = ${userId}`;
