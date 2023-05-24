@@ -270,7 +270,7 @@ export const customDBWhereParams = (params : { field: string, cond: string, valu
  * @param { string } url
  */
 export const getAssetUrl = (url : string) => {
-    return `http://${
+    return `${
         process.env.DOMAIN
     }/assets/${url}`;
 }
