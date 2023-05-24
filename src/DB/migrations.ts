@@ -38,6 +38,7 @@ export default [
             CREATE TABLE users (
                 id serial PRIMARY KEY,
                 name text not null default '',
+                display_name text not null default '',
                 wallet text not null,
                 signature text not null default '',
                 profile_picture text not null default '',
@@ -67,9 +68,10 @@ export default [
             CREATE TABLE user_donation_setting (
                 id serial PRIMARY KEY,
                 user_id int not null,
-                to_chain int default 0,
+                to_chain text default 0,
                 to_token_symbol text not null default '',
                 to_token_address text not null default '',
+                quick_amount text not null default '[3, 10, 25, 50]',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
             );`,
@@ -166,7 +168,7 @@ export default [
 
             CREATE TABLE stream_payments (
                 id bigserial PRIMARY KEY,
-                from_user int not null,
+                from_user int,
                 from_wallet text not null,
                 from_chain int not null,
                 from_token_symbol text not null,
@@ -177,7 +179,6 @@ export default [
                 to_chain int not null,
                 to_token_symbol text not null,
                 to_token_address text not null,
-                to_amount numeric(72,18) not null,
                 tx_hash text not null,
                 usd_worth numeric(18,2) not null,
                 status stream_payment_status not null default 'pending',
@@ -228,6 +229,7 @@ export default [
                 bar_empty_color text not null default '',
                 bar_filled_color text not null default '',
                 position overlay_position not null default 'middle-center',
+                theme text not null default 'none',
                 created_at timestamp default current_timestamp,
                 updated_at timestamp
             );`,
@@ -309,27 +311,27 @@ export default [
             DROP INDEX stream_poll_options_poll_id_idx;
         `
     },
-    // {
-    //     name: "create_stream_poll_payments_table",
-    //     query: `
-    //         CREATE TABLE stream_poll_payments (
-    //             poll_id int not null,
-    //             option_id bigint not null,
-    //             payment_id bigint not null
-    //         );`,
-    //     rollback_query: `
-    //         DROP TABLE stream_poll_payments;
-    //     `
-    // },
-    // {
-    //     name: "create_stream_poll_payments_table_idx",
-    //     query: `
-    //         CREATE INDEX stream_poll_payments_poll_id_option_id_idx ON stream_poll_payments (poll_id, option_id);
-    //         `,
-    //     rollback_query: `
-    //         DROP INDEX stream_poll_payments_poll_id_option_id_idx;
-    //     `
-    // },
+    {
+        name: "create_stream_poll_payments_table",
+        query: `
+            CREATE TABLE stream_poll_payments (
+                poll_id int not null,
+                option_id bigint not null,
+                payment_id bigint not null
+            );`,
+        rollback_query: `
+            DROP TABLE stream_poll_payments;
+        `
+    },
+    {
+        name: "create_stream_poll_payments_table_idx",
+        query: `
+            CREATE INDEX stream_poll_payments_poll_id_option_id_idx ON stream_poll_payments (poll_id, option_id);
+            `,
+        rollback_query: `
+            DROP INDEX stream_poll_payments_poll_id_option_id_idx;
+        `
+    },
     {
         name: "create_stream_milestone_table",
         query: `
@@ -447,6 +449,7 @@ export default [
                 user_id int not null,
                 style_id int not null default 0,
                 content text not null default '',
+                caption text not null default '{{donator}}: {{amount}}',
                 type trigger_type default 'alltime',
                 status trigger_status default 'inactive',
                 created_at timestamp default current_timestamp,
@@ -548,6 +551,48 @@ export default [
             `,
         rollback_query: `
             DROP INDEX stream_qr_user_id_idx;
+        `
+    },
+    {
+        name: "create_stream_webhooks_table",
+        query: `
+            CREATE TYPE webhook_status AS ENUM ('active', 'inactive');
+            CREATE TYPE webhook_type AS ENUM ('discord', 'custom');
+
+            CREATE TABLE stream_webhooks (
+                id serial PRIMARY KEY,
+                user_id int not null,
+                type webhook_type not null,
+                value text not null,
+                template text not null,
+                status webhook_status default 'inactive',
+                created_at timestamp default current_timestamp,
+                updated_at timestamp
+            );`,
+        rollback_query: `
+            DROP TABLE stream_webhooks;
+        `
+    },
+    {
+        name: "create_stream_webhooks_idx",
+        query: `
+            CREATE TRIGGER update_stream_webhooks_updated_at BEFORE UPDATE ON stream_webhooks FOR EACH ROW EXECUTE PROCEDURE update_at_column();
+            CREATE INDEX stream_webhook_type_idx ON stream_webhooks (type);
+            CREATE INDEX stream_webhook_status_idx ON stream_webhooks (status);
+            `,
+        rollback_query: `
+            DROP TRIGGER update_stream_webhooks_updated_at;
+            DROP INDEX stream_webhook_type_idx;
+            DROP INDEX stream_webhook_status_idx;
+        `
+    },
+    {
+        name: "create_stream_webhooks_concurrently_idx",
+        query: `
+            CREATE INDEX CONCURRENTLY stream_webhooks_user_id_idx ON stream_webhooks (user_id);
+            `,
+        rollback_query: `
+            DROP INDEX stream_webhooks_user_id_idx;
         `
     },
 ];

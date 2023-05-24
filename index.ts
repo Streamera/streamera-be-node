@@ -14,8 +14,11 @@ import { routes as announcementRoutes } from './src/Routes/announcements';
 import { routes as leaderboardRoutes } from './src/Routes/leaderboards';
 import { routes as milestoneRoutes } from './src/Routes/milestones';
 import { routes as pollRoutes } from './src/Routes/polls';
+import { routes as webhookRoutes } from './src/Routes/webhooks';
 dotenv.config({ path: path.join(__dirname, '.env')});
 import { instrument } from '@socket.io/admin-ui';
+import { Studio } from './src/Studio';
+import { getServerPort } from './utils';
 
 process.on('uncaughtException', function (err) {
     //dont stop on uncaught exception
@@ -23,7 +26,7 @@ process.on('uncaughtException', function (err) {
 });
 
 //create app
-const port = 8081;
+const port = getServerPort() ?? 8081;
 const whitelists = JSON.parse(process.env.CORS_WHITELIST!);
 
 let app = express();
@@ -44,6 +47,7 @@ app.use('/announcement', announcementRoutes);
 app.use('/leaderboard', leaderboardRoutes);
 app.use('/milestone', milestoneRoutes);
 app.use('/poll', pollRoutes);
+app.use('/webhooks', webhookRoutes);
 
 // serve assets like images / video / etc
 app.use('/assets', express.static('public/content'));
@@ -57,12 +61,42 @@ let io = new Server(http, {
     }
 });
 
+export { io }; // Export the io instance
+
+//websocket functions
+io.on('connection', (socket: Socket) => {
+    console.log(`A client connected`);
+
+    let studio: Studio | null = null;
+    let onPromptDelete = () => {
+        studio = null;
+        // console.log('room destroyed');
+    };
+
+    socket.on('start_studio', async({ address }) => {
+        console.log(`${address} connected`);
+        if( !address ) {
+            socket.emit("invalid login");
+            return;
+        }
+
+        try {
+            studio = new Studio({io, socket, address, onPromptDelete});
+            await studio.init();
+        } catch (e){
+            // do nothing
+        }
+    });
+
+});
+
 instrument(io, {
-    auth: {
-      type: "basic",
-      username: "admin",
-      password: "$2b$10$heqvAkYMez.Va6Et2uXInOnkCT6/uQj1brkrbyG3LpopDklcq7ZOS" // "changeit" encrypted with bcrypt
-    },
+    auth: false
+    // {
+    //   type: "basic",
+    //   username: "admin",
+    //   password: "$2b$10$heqvAkYMez.Va6Et2uXInOnkCT6/uQj1brkrbyG3LpopDklcq7ZOS" // "changeit" encrypted with bcrypt
+    // },
 });
 
 //websocket functions

@@ -1,14 +1,15 @@
-import OverlayPosition from '../OverlayStyles/types';
+import OverlayPosition, { Theme } from '../OverlayStyles/types';
 export type PollStatus = 'active' | 'inactive';
 
 export type Poll = {
     id?: number;
-    user_id: string;
+    user_id: number;
     title: string;
     start_at: string;
     end_at: string;
     status: PollStatus;
     style_id: number;
+    total: number;
     created_at?: string;
     updated_at?: string;
     deleted_at?: string;
@@ -21,4 +22,5 @@ export type Poll = {
     bar_filled_color?: string;
     position?: OverlayPosition;
     options?: any;
+    theme?: Theme;
 }

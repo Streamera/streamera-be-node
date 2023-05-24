@@ -1,9 +1,14 @@
 import DB from "../DB"
 import {
-    formatDBParamsToStr, getAssetUrl,
+    formatDBParamsToStr, getAssetUrl, convertBigIntToString
 } from '../../utils';
 import _ from "lodash";
+import { io } from '../../index';
 import { Leaderboard } from "./types";
+import moment from 'moment';
+
+import * as UserController from '../Users/index';
+import * as PaymentController from '../Payments/index';
 import * as StylesController from '../OverlayStyles/index';
 
 const table = 'stream_leaderboards';
@@ -27,7 +32,6 @@ export const create = async(insertParams: any): Promise<{[id: string]: number}> 
 
     // insert style
     const style = await StylesController.create(insertParams);
-    console.log(style);
     insertParams['style_id'] = style.id;
 
     // get Leaderboard insert field
@@ -56,29 +60,35 @@ export const view = async(id: number): Promise<Leaderboard> => {
 
         // merge
         _.merge(result, style);
+
+        const aggregate = await PaymentController.leaderboard(result.user_id, result.timeframe);
+        result.top_donators = aggregate;
     }
 
     return result ?? {};
 }
 
 // find (all match)
-export const find = async(whereParams: {[key: string]: any}): Promise<Leaderboard[]> => {
+export const find = async(whereParams: {[key: string]: any}) => {
     const params = formatDBParamsToStr(whereParams, ' AND ');
     const query = `SELECT * FROM ${table} WHERE ${params}`;
 
     const db = new DB();
-    const result: Leaderboard[] | undefined = await db.executeQueryForResults(query);
+    const result = await db.executeQueryForResults<Leaderboard>(query);
 
     await Promise.all(
         _.map(result, async(r, k) => {
             const style = await StylesController.view(result![k].style_id);
 
             // merge
-            _.merge(result, style);
+            _.merge(result![k], style);
+
+            const aggregate = await PaymentController.leaderboard(result![k].user_id, result![k].timeframe);
+            result![k].top_donators = aggregate;
         })
     );
 
-    return result as Leaderboard[] ?? [];
+    return result ?? [];
 }
 
 // list (all)
@@ -103,6 +113,11 @@ export const list = async(): Promise<Leaderboard[]> => {
 export const update = async(id: number, updateParams: {[key: string]: any}): Promise<void> => {
     const qr = await view(id);
 
+    const users = await UserController.find({ id: qr.user_id, signature: updateParams.signature });
+    if(users.length === 0) {
+        throw Error("Unauthorized!");
+    }
+
     // update style
     await StylesController.update(qr.style_id, updateParams);
 
@@ -115,6 +130,8 @@ export const update = async(id: number, updateParams: {[key: string]: any}): Pro
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+
+    await updateIO(qr.user_id, id);
 }
 
 // delete (soft delete?)
@@ -123,4 +140,12 @@ export const remove = async(id: number) => {
 
     const db = new DB();
     await db.executeQueryForSingleResult(query);
+}
+
+// update io
+export const updateIO = async(userId: number, topicId: number) => {
+    const user = await UserController.view(userId);
+    const topic = await view(topicId);
+
+    io.to(`studio_${user.wallet}`).emit('update', { leaderboard: convertBigIntToString(topic) });
 }

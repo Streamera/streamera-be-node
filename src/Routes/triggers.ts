@@ -61,9 +61,19 @@ routes.post('/update/:id', contentUpload.single('content'), async(req, res) => {
         data.content = req.file?.filename;
     }
 
-    await controller.update(parseInt(req.params.id), data);
 
-    return res.json({ success: true });
+    try {
+        await controller.update(parseInt(req.params.id), data);
+        return res.json({ success: true });
+    }
+
+    catch(e: any) {
+        if(e.message === "Unauthorized") {
+            return res.status(401).send("Unauthorized");
+        }
+
+        return res.status(500);
+    }
 });
 
 // remove (trigger id)
