@@ -351,3 +351,12 @@ export const getPeriod = (period: 'monthly' | 'weekly' | 'daily') => {
 
     return { start: dayjs().startOf(dayParam[period] as OpUnitType).format('YYYY-MM-DD HH:mm:ss'), end: dayjs().endOf(dayParam[period] as OpUnitType).format('YYYY-MM-DD HH:mm:ss') };
 }
+
+/**
+ * Get server port from env
+ * @date 2023-05-17
+ * @param { string } url
+ */
+export const getServerPort = () => {
+    return process.env.SERVER_PORT;
+}
