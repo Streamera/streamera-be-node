@@ -4,7 +4,7 @@ import {
 } from '../../utils';
 import _ from "lodash";
 import { io } from '../../index';
-import { Payment, PaymentAggregate } from "./types";
+import { Payment, PaymentAggregate, History } from "./types";
 
 import * as UserController from '../Users/index';
 import * as TriggerController from '../Triggers/index';
@@ -180,6 +180,20 @@ export const where = async(whereParams: { field: string, cond: string, value: an
     return result as Payment[] ?? [];
 }
 
+export const history = async(wallet: string): Promise<History> => {
+    const db = new DB();
+
+    const sendQuery = `SELECT * FROM ${table} WHERE from_wallet = '${wallet}' ORDER BY created_at DESC LIMIT 10`;
+    const sendTxs = await db.executeQueryForResults(sendQuery);
+
+    const receiveQuery = `SELECT * FROM ${table} WHERE to_wallet = '${wallet}' ORDER BY created_at DESC LIMIT 10`;
+    const receiveTxs = await db.executeQueryForResults(receiveQuery);
+
+    return {
+        send: convertBigIntToString(sendTxs) ?? [],
+        receive: convertBigIntToString(receiveTxs) ?? []
+    }
+}
 
 // delete (soft delete?)
 // export const delete = async(userId: number) => {
