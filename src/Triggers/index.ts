@@ -148,7 +148,7 @@ export const demo = async(userId: number) => {
         return;
     }
 
-    let message = trigger?.[0].caption.replace(/{{donator}}/g, `System`).replace(/{{amount}}/g, `$100.00`);
+    let message = trigger?.[0].caption.replace(/{{donator}}/g, `System`).replace(/{{amount}}/g, `$10000.00`);
 
     io.to(`studio_${user.wallet}`).emit('payment', message);
 }

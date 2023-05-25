@@ -241,10 +241,15 @@ export const updateIO = async(id: number) => {
 // check if user exist and signature empty?
 // if empty update it with the current signature
 export const verify = async(wallet: string, signature: string) => {
-    const user = await find({ wallet: wallet });
+    const db = new DB();
+    const userQuery = `SELECT * FROM ${table} WHERE status = 'active' AND wallet = '${wallet}'`;
+    
+    const user = await db.executeQueryForSingleResult(userQuery);
+    console.log(user);
+    if (user && user.signature === '') {
+        const updateQuery = `UPDATE ${table} SET signature = '${signature}' WHERE id = ${user.id!} AND status = 'active'`;
+        await db.executeQuery(updateQuery);
 
-    if (user.length !== 0 && user[0].signature === '') {
-        await update(user[0].id!, { signature: signature });
         return true;
     } else {
         return false;
