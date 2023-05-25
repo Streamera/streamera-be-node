@@ -142,7 +142,7 @@ export default class DB {
         let isSuccess = false;
         try {
             await client.connect();
-            console.log(query);
+            // console.log(query);
             await client.query(query);
             isSuccess = true;
         }
@@ -169,7 +169,7 @@ export default class DB {
         let res = undefined;
         try {
             await client.connect();
-            console.log(query);
+            // console.log(query);
             res = await client.query(query);
         }
 
