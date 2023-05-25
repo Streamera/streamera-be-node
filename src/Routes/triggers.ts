@@ -82,3 +82,21 @@ routes.post('/remove/:id', async(req, res) => {
 
     return res.json({ success: true });
 });
+
+// remove (trigger id)
+routes.post('/demo', async(req, res) => {
+    let data = req.body;
+
+    try {
+        await controller.demo(data.user_id);
+
+        return res.json({ success: true });
+    } catch(e: any) {
+        if(e.message === "Unauthorized") {
+            return res.status(401).send("Unauthorized");
+        }
+
+        return res.status(500);
+    }
+
+});

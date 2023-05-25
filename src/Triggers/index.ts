@@ -140,6 +140,19 @@ export const remove = async(id: number) => {
     await db.executeQueryForSingleResult(query);
 }
 
+export const demo = async(userId: number) => {
+    const user = await UserController.view(userId);
+    const trigger = await find({ user_id: userId });
+
+    if (trigger.length === 0) {
+        return;
+    }
+
+    let message = trigger?.[0].caption.replace(/{{donator}}/g, `System`).replace(/{{amount}}/g, `$100.00`);
+
+    io.to(`studio_${user.wallet}`).emit('update', { payment: message });
+}
+
 // update io
 export const updateIO = async(userId: number, topicId: number) => {
     const user = await UserController.view(userId);
