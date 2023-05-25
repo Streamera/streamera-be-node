@@ -12,7 +12,7 @@ export const init = async(user_id: number) => {
     return await create({
         user_id: user_id,
         to_chain: 97,
-        to_token_symbol: 'bnb',
+        to_token_symbol: 'BNB',
         to_token_address: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
         quick_amount: '[3, 10, 25, 50]'
     });
