@@ -245,7 +245,7 @@ export const verify = async(wallet: string, signature: string) => {
     const userQuery = `SELECT * FROM ${table} WHERE status = 'active' AND wallet = '${wallet}'`;
     
     const user = await db.executeQueryForSingleResult(userQuery);
-    console.log(user);
+
     if (user && user.signature === '') {
         const updateQuery = `UPDATE ${table} SET signature = '${signature}' WHERE id = ${user.id!} AND status = 'active'`;
         await db.executeQuery(updateQuery);
