@@ -151,8 +151,9 @@ export const demo = async(userId: number) => {
     // random name
     const donors = ['greengre', 'kiiida', 'ccccyris', 'waaatever', 'iluvpepe', 'loldogeee', 'squidrox', 'axelaeerr'];
     const randIdx = Math.floor(Math.random() * donors.length);
+    const demoAmount = Math.floor(Math.random() * 1000);
 
-    let message = trigger?.[0].caption.replace(/{{donator}}/g, donors[randIdx]).replace(/{{amount}}/g, `$10000.00`);
+    let message = trigger?.[0].caption.replace(/{{donator}}/g, donors[randIdx]).replace(/{{amount}}/g, `$${demoAmount}`);
 
     io.to(`studio_${user.wallet}`).emit('payment', message);
 }
